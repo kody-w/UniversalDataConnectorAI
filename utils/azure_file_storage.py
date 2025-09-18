@@ -401,3 +401,102 @@ class AzureFileStorageManager:
             logging.error(f"Error generating download URL: {str(e)}")
             logging.error(f"Directory: {directory}, Filename: {filename}")
             return None
+
+    # NEW METHODS ADDED FOR MISSING FUNCTIONALITY
+    def read_json_from_path(self, directory_name, file_name):
+        """
+        Read JSON data from a specific file path.
+        
+        Args:
+            directory_name (str): The directory containing the file
+            file_name (str): The name of the JSON file
+            
+        Returns:
+            dict or list or None: The parsed JSON data or None if error/not found
+        """
+        try:
+            file_content = self.file_service.get_file_to_text(
+                self.share_name,
+                directory_name,
+                file_name
+            )
+            return safe_json_loads(file_content.content)
+        except Exception as e:
+            if "ResourceNotFound" not in str(e):
+                logging.error(f"Error reading JSON from {directory_name}/{file_name}: {str(e)}")
+            return None
+
+    def write_json_to_path(self, data, directory_name, file_name):
+        """
+        Write JSON data to a specific file path.
+        
+        Args:
+            data (dict or list): The data to serialize to JSON
+            directory_name (str): The directory to write to
+            file_name (str): The name of the JSON file
+            
+        Returns:
+            bool: Success or failure
+        """
+        try:
+            # Ensure the directory exists
+            self.ensure_directory_exists(directory_name)
+            
+            # Serialize the data to JSON
+            json_content = json.dumps(data, indent=4, ensure_ascii=False)
+            
+            # Write the file
+            self.file_service.create_file_from_text(
+                self.share_name,
+                directory_name,
+                file_name,
+                json_content
+            )
+            return True
+        except Exception as e:
+            logging.error(f"Error writing JSON to {directory_name}/{file_name}: {str(e)}")
+            return False
+
+    def store_schema(self, source_id, schema):
+        """Store a schema for a data source."""
+        return self.write_json_to_path(schema, "schemas", f"{source_id}_schema.json")
+
+    def get_schema(self, source_id):
+        """Retrieve a stored schema for a data source."""
+        return self.read_json_from_path("schemas", f"{source_id}_schema.json")
+
+    def store_transformation(self, transformation_id, transformation):
+        """Store a transformation configuration."""
+        return self.write_json_to_path(transformation, "transformations", f"{transformation_id}.json")
+
+    def get_transformation(self, transformation_id):
+        """Retrieve a stored transformation configuration."""
+        return self.read_json_from_path("transformations", f"{transformation_id}.json")
+
+    def store_query_template(self, template_id, template):
+        """Store a query template."""
+        return self.write_json_to_path(template, "query_templates", f"{template_id}.json")
+
+    def get_query_template(self, template_id):
+        """Retrieve a stored query template."""
+        return self.read_json_from_path("query_templates", f"{template_id}.json")
+
+    def cache_data(self, cache_key, data, ttl=300):
+        """Cache data with a TTL."""
+        cache_entry = {
+            'data': data,
+            'timestamp': datetime.now().isoformat(),
+            'ttl': ttl
+        }
+        return self.write_json_to_path(cache_entry, "data_cache", f"{cache_key}.json")
+
+    def get_cached_data(self, cache_key):
+        """Retrieve cached data if still valid."""
+        cache_entry = self.read_json_from_path("data_cache", f"{cache_key}.json")
+        if cache_entry:
+            # Check if still valid
+            timestamp = datetime.fromisoformat(cache_entry['timestamp'])
+            ttl = cache_entry.get('ttl', 300)
+            if datetime.now() - timestamp < timedelta(seconds=ttl):
+                return cache_entry.get('data')
+        return None
