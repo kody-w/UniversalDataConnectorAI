@@ -1,4 +1,5 @@
-# Universal Data C- 🎨 **Professional Web Interface** - Beautiful dashboard with real-time monitoring
+# Universal Data Connector
+- 🎨 **Professional Web Interface** - Beautiful dashboard with real-time monitoring
 - 📊 **Multi-Format Support** - JSON, SQL, CSV, XML, and custom formats
 
 ## 📸 Platform Screenshots
@@ -120,7 +121,7 @@ open index.html
 3. Access via the provided Azure URL
 
 ### Access Points
-- **Local API**: http://localhost:7071/api/businessinsightbot_function
+- **Local API**: http://localhost:7071/api/data_connector_function
 - **Web Interface**: Open `index.html` in your browser
 - **Azure Function**: Uses your deployed Azure URL
 
@@ -128,7 +129,7 @@ open index.html
 
 ### API Data Fetching
 ```bash
-curl -X POST http://localhost:7071/api/businessinsightbot_function \
+curl -X POST http://localhost:7071/api/data_connector_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Use APIConnector to fetch data from https://jsonplaceholder.typicode.com/users",
@@ -138,7 +139,7 @@ curl -X POST http://localhost:7071/api/businessinsightbot_function \
 
 ### Natural Language Queries
 ```bash
-curl -X POST http://localhost:7071/api/businessinsightbot_function \
+curl -X POST http://localhost:7071/api/data_connector_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Show me all users with .biz email addresses from the cached data",
@@ -148,7 +149,7 @@ curl -X POST http://localhost:7071/api/businessinsightbot_function \
 
 ### Database Operations
 ```bash
-curl -X POST http://localhost:7071/api/businessinsightbot_function \
+curl -X POST http://localhost:7071/api/data_connector_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Use SQLConnector to create a users table and insert the cached API data",
@@ -494,8 +495,8 @@ MIT License - See [LICENSE](LICENSE)
 
 ## 🆘 Support
 
-- **Issues**: [GitHub Issues](https://github.com/kody-w/Copilot-Agent-365/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/kody-w/Copilot-Agent-365/discussions)
+- **Issues**: [GitHub Issues](https://github.com/kody-w/UniversalDataConnectorAI/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/kody-w/UniversalDataConnectorAI/discussions)
 
 ## 📚 Documentation & Resources
 
