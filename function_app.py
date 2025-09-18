@@ -601,7 +601,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
 
 app = func.FunctionApp()
 
-@app.route(route="businessinsightbot_function", auth_level=func.AuthLevel.FUNCTION)
+@app.route(route="data_connector_function", auth_level=func.AuthLevel.FUNCTION)
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
