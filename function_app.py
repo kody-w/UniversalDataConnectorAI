@@ -208,30 +208,21 @@ def load_agents_from_folder():
 class Assistant:
     def __init__(self, declared_agents):
         self.config = {
-            'assistant_name': str(os.environ.get('ASSISTANT_NAME', 'BusinessInsightBot')),
-            'characteristic_description': str(os.environ.get('CHARACTERISTIC_DESCRIPTION', 'helpful business assistant'))
+            'assistant_name': str(os.environ.get('ASSISTANT_NAME', 'UniversalDataConnector')),
+            'characteristic_description': str(os.environ.get('CHARACTERISTIC_DESCRIPTION', 'adaptive universal data pattern analyzer and connector'))
         }
 
-        # Fixed Azure OpenAI initialization
         try:
-            # Use the correct environment variable names
-            api_key = os.environ.get('AZURE_OPENAI_API_KEY')
-            endpoint = os.environ.get('AZURE_OPENAI_ENDPOINT')
-            api_version = os.environ.get('AZURE_OPENAI_API_VERSION', '2024-02-01')
-            
-            if not api_key or not endpoint:
-                raise ValueError("Azure OpenAI API key and endpoint are required")
-            
-            logging.info(f"Initializing Azure OpenAI with endpoint: {endpoint}, version: {api_version}")
-            
             self.client = AzureOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=endpoint
+                api_key=os.environ['AZURE_OPENAI_API_KEY'],
+                api_version=os.environ['AZURE_OPENAI_API_VERSION'],
+                azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
             )
-        except Exception as e:
-            logging.error(f"Failed to initialize Azure OpenAI client: {str(e)}")
-            raise
+        except TypeError:
+            self.client = AzureOpenAI(
+                api_key=os.environ['AZURE_OPENAI_API_KEY'],
+                azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
+            )
 
         self.known_agents = self.reload_agents(declared_agents)
         
@@ -270,31 +261,18 @@ class Assistant:
                 self.user_memory = "No specific context memory available."
                 return
 
-            # Limit memory size to prevent crashes
-            try:
-                # Always get shared memories with full_recall=True to ensure complete context
-                self.storage_manager.set_memory_context(None)  # Reset to shared context
-                shared_result = context_memory_agent.perform(full_recall=True)
-                # Limit shared memory to reasonable size
-                self.shared_memory = str(shared_result)[:5000] if shared_result else "No shared context memory available."
-            except Exception as e:
-                logging.warning(f"Error getting shared memory: {str(e)}")
-                self.shared_memory = "Context memory initialization failed."
+            # Always get shared memories with full_recall=True to ensure complete context
+            self.storage_manager.set_memory_context(None)  # Reset to shared context
+            self.shared_memory = str(context_memory_agent.perform(full_recall=True))
             
             # If user_guid provided, get user-specific memories with full_recall=True
             # If no user_guid is provided, fall back to the default GUID
             if not user_guid:
                 user_guid = DEFAULT_USER_GUID
-            
-            try:
-                self.storage_manager.set_memory_context(user_guid)
-                user_result = context_memory_agent.perform(user_guid=user_guid, full_recall=True)
-                # Limit user memory to reasonable size
-                self.user_memory = str(user_result)[:5000] if user_result else "No specific context memory available."
-            except Exception as e:
-                logging.warning(f"Error getting user memory: {str(e)}")
-                self.user_memory = "Context memory initialization failed."
                 
+            self.storage_manager.set_memory_context(user_guid)
+            self.user_memory = str(context_memory_agent.perform(user_guid=user_guid, full_recall=True))
+            
         except Exception as e:
             logging.warning(f"Error initializing context memory: {str(e)}")
             self.shared_memory = "Context memory initialization failed."
@@ -356,69 +334,90 @@ class Assistant:
             "role": "system",
             "content": f"""
 <identity>
-You are a Microsoft Copilot assistant named {str(self.config.get('assistant_name', 'Assistant'))}, operating within Microsoft Teams.
+You are {str(self.config.get('assistant_name', 'UniversalDataConnector'))}, a {str(self.config.get('characteristic_description', 'adaptive universal data pattern analyzer and connector'))} operating within Microsoft Teams.
+Your core capability is to understand, analyze, and connect to ANY data format - from ancient mainframe outputs to cutting-edge quantum data streams.
 </identity>
 
+<core_capabilities>
+You are a Universal Data Connector with these specialized abilities:
+- Pattern Recognition: Detect and analyze ANY data pattern without assumptions (fixed-width, delimited, binary, encoded, encrypted, artistic, biological, etc.)
+- Format Translation: Convert between any data formats (CSV, XML, JSON, SQL, Parquet, and countless exotic formats)
+- Intelligent Analysis: Use AI to understand unknown data formats and generate parsing strategies
+- Adaptive Learning: Learn from successful connections and optimize future operations
+- Zero-Assumption Processing: Never assume a format - always analyze first
+</core_capabilities>
+
 <shared_memory_output>
-These are memories accessible by all users of the system:
+These are shared data patterns and connection configurations known to all users:
 {str(self.shared_memory)}
 </shared_memory_output>
 
 <specific_memory_output>
-These are memories specific to the current conversation:
+These are user-specific data connections and patterns:
 {str(self.user_memory)}
 </specific_memory_output>
 
+<data_connection_principles>
+1. NO FORMAT ASSUMPTIONS: Never assume data is in a standard format. Always analyze first.
+2. PATTERN FIRST: Look for patterns before applying format rules.
+3. HYPOTHESIS TESTING: Generate multiple hypotheses about what the data could be.
+4. ADAPTIVE PARSING: Adjust parsing strategy based on discovered patterns.
+5. PRESERVATION: Never lose information during transformation.
+6. EXOTIC FORMATS: Be ready for anything - morse code, DNA sequences, music notation, alien communications.
+</data_connection_principles>
+
 <context_instructions>
-- <shared_memory_output> represents common knowledge shared across all conversations
-- <specific_memory_output> represents specific context for the current conversation
-- Apply specific context with higher precedence than shared context
-- Synthesize information from both contexts for comprehensive responses
+- When user provides data or files, ALWAYS use UniversalDataTranslator agent FIRST to analyze without assumptions
+- After analysis, use IntelligentFormatSynthesis to convert to desired formats
+- Store successful patterns using ManageMemory for future optimization
+- Never claim to know a format without analysis
+- Be transparent about confidence levels and multiple interpretations
 </context_instructions>
 
 <agent_usage>
-IMPORTANT: You must be honest and accurate about agent usage:
-- NEVER pretend or imply you've executed an agent when you haven't actually called it
-- NEVER say "using my agent" unless you are actually making a function call to that agent
-- NEVER fabricate success messages about data operations that haven't occurred
-- If you need to perform an action and don't have the necessary agent, say so directly
-- When a user requests an action, either:
-  1. Call the appropriate agent and report actual results, or
-  2. Say "I don't have the capability to do that" and suggest an alternative
-  3. If no details are provided besides the request to run an agent, infer the necessary input parameters by "reading between the lines" of the conversation context so far
+CRITICAL Data Connection Protocol:
+1. For ANY data input: First use UniversalDataTranslator to analyze patterns
+2. Based on analysis: Use IntelligentFormatSynthesis to convert if needed
+3. Learn and store: Use ManageMemory to save successful patterns
+4. NEVER pretend to have analyzed data without actually calling agents
+5. ALWAYS be explicit about what agents are being used and why
+6. Report actual analysis results, not assumptions
 </agent_usage>
 
 <response_format>
 CRITICAL: You must structure your response in TWO distinct parts separated by the delimiter |||VOICE|||
 
 1. FIRST PART (before |||VOICE|||): Your full formatted response
-   - Use **bold** for emphasis
-   - Use `code blocks` for technical content
-   - Apply --- for horizontal rules to separate sections
-   - Utilize > for important quotes or callouts
-   - Format code with ```language syntax highlighting
-   - Create numbered lists with proper indentation
-   - Add personality when appropriate
-   - Apply # ## ### headings for clear structure
+   - Use **bold** for key findings
+   - Use `code blocks` for data samples
+   - Apply --- for section separators
+   - Show confidence levels as percentages
+   - Display pattern analysis results
+   - Include detected formats and structures
+   - Present multiple hypotheses if confidence < 80%
+   - Provide parsing recommendations
+   - Show field mappings for structured data
+   - Use tables for field definitions
 
 2. SECOND PART (after |||VOICE|||): A concise voice response
    - Maximum 1-2 sentences
    - Pure conversational English with NO formatting
-   - Extract only the most critical information
-   - Sound like a colleague speaking casually over a cubicle wall
-   - Be natural and conversational, not robotic
-   - Focus on the key takeaway or action item
-   - Example: "I found those Q3 sales figures - revenue's up 12 percent from last quarter." or "Sure, I'll pull up that customer data for you right now."
+   - Focus on the main discovery or connection status
+   - Example: "I detected a fixed-width format with 12 fields - looks like mainframe output from the 80s."
 
 EXAMPLE FORMAT:
-Here's the detailed analysis you requested:
+**Data Analysis Complete**
 
-**Key Findings:**
-- Revenue increased by 12%
-- Customer satisfaction scores improved
+Format Detected: Fixed-Width Text (85% confidence)
+Record Length: 120 characters
+Fields Identified: 12
+
+Alternative Hypotheses:
+- COBOL data file (65% confidence)  
+- Legacy database export (45% confidence)
 
 |||VOICE|||
-Revenue's up 12 percent and customers are happier - looking good for Q3.
+Found a fixed-width format with 12 fields - probably mainframe data.
 </response_format>
 """
         }
@@ -435,11 +434,8 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
     
     def get_openai_api_call(self, messages):
         try:
-            # Get the deployment name from environment or use default
-            deployment_name = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-deployment')
-            
             response = self.client.chat.completions.create(
-                model=deployment_name,
+                model="gpt-5-chat",
                 messages=messages,
                 functions=self.get_agent_metadata(),
                 function_call="auto"
@@ -469,7 +465,7 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
             if sentences:
                 voice_response = sentences[0].strip() + "."
                 # Remove any formatting from voice response
-                voice_response = re.sub(r'\*\*|`|#|>|---', '', voice_response)
+                voice_response = re.sub(r'\*\*|`|#|>|---|[\U00010000-\U0010ffff]|[\u2600-\u26FF]|[\u2700-\u27BF]', '', voice_response)
                 voice_response = re.sub(r'\s+', ' ', voice_response).strip()
             else:
                 voice_response = "I've completed your request."
@@ -477,144 +473,131 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
         return formatted_response, voice_response
 
     def get_response(self, prompt, conversation_history, max_retries=3, retry_delay=2):
-        try:
-            # Clean up conversation history to prevent memory issues
-            if isinstance(conversation_history, list):
-                # Limit conversation history to last 20 messages to prevent memory issues
-                if len(conversation_history) > 20:
-                    conversation_history = conversation_history[-20:]
-                    logging.info(f"Trimmed conversation history to last 20 messages")
-            
-            # Check if this is a first-time initialization with just a GUID
-            # or if a GUID is in the conversation history or current prompt
-            guid_from_history = self._check_first_message_for_guid(conversation_history)
-            guid_from_prompt = self.extract_user_guid(prompt)
-            
-            target_guid = guid_from_history or guid_from_prompt
-            
-            # Set or update the memory context if we have a GUID that's different from current
-            if target_guid and target_guid != self.user_guid:
-                self.user_guid = target_guid
-                self._initialize_context_memory(self.user_guid)
-                logging.info(f"User GUID updated to: {self.user_guid}")
-            elif not self.user_guid:
-                # If for some reason we don't have a user_guid, set it to the default
-                self.user_guid = DEFAULT_USER_GUID
-                self._initialize_context_memory(self.user_guid)
-                logging.info(f"Using default User GUID: {self.user_guid}")
-            
-            # Ensure prompt is string
-            prompt = str(prompt) if prompt is not None else ""
-            
-            # Skip processing if the prompt is just a GUID and we've already set the context
-            if guid_from_prompt and prompt.strip() == guid_from_prompt and self.user_guid == guid_from_prompt:
-                formatted = "I've successfully loaded your conversation memory. How can I assist you today?"
-                voice = "I've loaded your memory - what can I help you with?"
-                return formatted, voice, ""
-            
-            messages = self.prepare_messages(conversation_history)
-            messages.append(ensure_string_content({"role": "user", "content": prompt}))
+        # Check if this is a first-time initialization with just a GUID
+        # or if a GUID is in the conversation history or current prompt
+        guid_from_history = self._check_first_message_for_guid(conversation_history)
+        guid_from_prompt = self.extract_user_guid(prompt)
+        
+        target_guid = guid_from_history or guid_from_prompt
+        
+        # Set or update the memory context if we have a GUID that's different from current
+        if target_guid and target_guid != self.user_guid:
+            self.user_guid = target_guid
+            self._initialize_context_memory(self.user_guid)
+            logging.info(f"User GUID updated to: {self.user_guid}")
+        elif not self.user_guid:
+            # If for some reason we don't have a user_guid, set it to the default
+            self.user_guid = DEFAULT_USER_GUID
+            self._initialize_context_memory(self.user_guid)
+            logging.info(f"Using default User GUID: {self.user_guid}")
+        
+        # Ensure prompt is string
+        prompt = str(prompt) if prompt is not None else ""
+        
+        # Skip processing if the prompt is just a GUID and we've already set the context
+        if guid_from_prompt and prompt.strip() == guid_from_prompt and self.user_guid == guid_from_prompt:
+            formatted = "I've successfully loaded your data connection patterns and memories. Ready to analyze any data format you provide."
+            voice = "Data patterns loaded - ready to connect to any format."
+            return formatted, voice, ""
+        
+        messages = self.prepare_messages(conversation_history)
+        messages.append(ensure_string_content({"role": "user", "content": prompt}))
 
-            agent_logs = []
-            retry_count = 0
-            needs_follow_up = False
+        agent_logs = []
+        retry_count = 0
+        needs_follow_up = False
 
-            while retry_count < max_retries:
+        while retry_count < max_retries:
+            try:
+                response = self.get_openai_api_call(messages)
+                assistant_msg = response.choices[0].message
+                msg_contents = assistant_msg.content or ""  # Ensure content is never None
+
+                if not assistant_msg.function_call:
+                    formatted_response, voice_response = self.parse_response_with_voice(msg_contents)
+                    return formatted_response, voice_response, "\n".join(map(str, agent_logs))
+
+                agent_name = str(assistant_msg.function_call.name)
+                agent = self.known_agents.get(agent_name)
+
+                if not agent:
+                    return f"Agent '{agent_name}' does not exist", "I couldn't find that agent.", ""
+
+                # Process function call arguments
+                json_data = ensure_string_function_args(assistant_msg.function_call)
+                logging.info(f"JSON data before parsing: {json_data}")
+
                 try:
-                    response = self.get_openai_api_call(messages)
-                    assistant_msg = response.choices[0].message
-                    msg_contents = assistant_msg.content or ""  # Ensure content is never None
-
-                    if not assistant_msg.function_call:
-                        formatted_response, voice_response = self.parse_response_with_voice(msg_contents)
-                        return formatted_response, voice_response, "\n".join(map(str, agent_logs))
-
-                    agent_name = str(assistant_msg.function_call.name)
-                    agent = self.known_agents.get(agent_name)
-
-                    if not agent:
-                        return f"Agent '{agent_name}' does not exist", "I couldn't find that agent.", ""
-
-                    # Process function call arguments
-                    json_data = ensure_string_function_args(assistant_msg.function_call)
-                    logging.info(f"JSON data before parsing: {json_data}")
-
-                    try:
-                        agent_parameters = safe_json_loads(json_data)
-                        
-                        # Sanitize parameters - ensure none are undefined or None
-                        sanitized_parameters = {}
-                        for key, value in agent_parameters.items():
-                            if value is None:
-                                sanitized_parameters[key] = ""  # Convert None to empty string
-                            else:
-                                sanitized_parameters[key] = value
-                        
-                        # Add user_guid to agent parameters if agent accepts it
-                        # Always use the current user_guid (which might be the default)
-                        if agent_name in ['ManageMemory', 'ContextMemory']:
-                            sanitized_parameters['user_guid'] = self.user_guid
-                        
-                        # Always perform agent call - no caching
-                        result = agent.perform(**sanitized_parameters)
-                        
-                        # Ensure result is a string
-                        if result is None:
-                            result = "Agent completed successfully"
+                    agent_parameters = safe_json_loads(json_data)
+                    
+                    # Sanitize parameters - ensure none are undefined or None
+                    sanitized_parameters = {}
+                    for key, value in agent_parameters.items():
+                        if value is None:
+                            sanitized_parameters[key] = ""  # Convert None to empty string
                         else:
-                            result = str(result)
-                            
-                        agent_logs.append(f"Performed {agent_name} and got result: {result}")
-                            
-                    except Exception as e:
-                        logging.error(f"Error in agent execution: {str(e)}")
-                        return f"Error parsing parameters: {str(e)}", "I hit an error processing that.", ""
-
-                    # Add the function result to messages
-                    messages.append({
-                        "role": "function",
-                        "name": agent_name,
-                        "content": result
-                    })
+                            sanitized_parameters[key] = value
                     
-                    # EVALUATION: Check if we need a follow-up function call
-                    try:
-                        result_json = json.loads(result)
-                        # Look for error indicators or incomplete data flags
-                        needs_follow_up = False
-                        if isinstance(result_json, dict):
-                            # Check for error indicators
-                            if result_json.get('error') or result_json.get('status') == 'incomplete':
-                                needs_follow_up = True
-                            # Check for specific indicators that another action is needed
-                            if result_json.get('requires_additional_action') == True:
-                                needs_follow_up = True
-                    except:
-                        # If we can't parse the result as JSON, assume no follow-up needed
-                        needs_follow_up = False
+                    # Add user_guid to agent parameters if agent accepts it
+                    # Always use the current user_guid (which might be the default)
+                    if agent_name in ['ManageMemory', 'ContextMemory']:
+                        sanitized_parameters['user_guid'] = self.user_guid
                     
-                    # If we don't need a follow-up, get the final response and return
-                    if not needs_follow_up:
-                        final_response = self.get_openai_api_call(messages)
-                        final_msg = final_response.choices[0].message
-                        final_content = final_msg.content or ""  # Ensure content is never None
-                        formatted_response, voice_response = self.parse_response_with_voice(final_content)
-                        return formatted_response, voice_response, "\n".join(map(str, agent_logs))
-
-                except Exception as e:
-                    retry_count += 1
-                    if retry_count < max_retries:
-                        logging.warning(f"Error occurred: {str(e)}. Retrying in {retry_delay} seconds...")
-                        time.sleep(retry_delay)
+                    # Always perform agent call - no caching
+                    result = agent.perform(**sanitized_parameters)
+                    
+                    # Ensure result is a string
+                    if result is None:
+                        result = "Agent completed successfully"
                     else:
-                        logging.error(f"Max retries reached. Error: {str(e)}")
-                        return "An error occurred. Please try again.", "Something went wrong - try again.", ""
+                        result = str(result)
+                        
+                    agent_logs.append(f"Performed {agent_name} and got result: {result}")
+                        
+                except Exception as e:
+                    return f"Error parsing parameters: {str(e)}", "I hit an error processing that.", ""
 
-            return "Service temporarily unavailable. Please try again later.", "Service is down - try again later.", ""
-            
-        except Exception as e:
-            logging.error(f"Critical error in get_response: {str(e)}")
-            return "A critical error occurred. Please try again.", "Something went wrong - try again.", ""
+                # Add the function result to messages
+                messages.append({
+                    "role": "function",
+                    "name": agent_name,
+                    "content": result
+                })
+                
+                # EVALUATION: Check if we need a follow-up function call
+                try:
+                    result_json = json.loads(result)
+                    # Look for error indicators or incomplete data flags
+                    needs_follow_up = False
+                    if isinstance(result_json, dict):
+                        # Check for error indicators
+                        if result_json.get('error') or result_json.get('status') == 'incomplete':
+                            needs_follow_up = True
+                        # Check for specific indicators that another action is needed
+                        if result_json.get('requires_additional_action') == True:
+                            needs_follow_up = True
+                except:
+                    # If we can't parse the result as JSON, assume no follow-up needed
+                    needs_follow_up = False
+                
+                # If we don't need a follow-up, get the final response and return
+                if not needs_follow_up:
+                    final_response = self.get_openai_api_call(messages)
+                    final_msg = final_response.choices[0].message
+                    final_content = final_msg.content or ""  # Ensure content is never None
+                    formatted_response, voice_response = self.parse_response_with_voice(final_content)
+                    return formatted_response, voice_response, "\n".join(map(str, agent_logs))
+
+            except Exception as e:
+                retry_count += 1
+                if retry_count < max_retries:
+                    logging.warning(f"Error occurred: {str(e)}. Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error(f"Max retries reached. Error: {str(e)}")
+                    return "An error occurred. Please try again.", "Something went wrong - try again.", ""
+
+        return "Service temporarily unavailable. Please try again later.", "Service is down - try again later.", ""
 
 app = func.FunctionApp()
 
