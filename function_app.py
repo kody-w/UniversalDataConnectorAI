@@ -26,18 +26,18 @@ def ensure_string_content(message):
     # Handle None or non-dict messages
     if message is None:
         return {"role": "user", "content": ""}
-        
+
     if not isinstance(message, dict):
         # Convert whatever we have to string
         return {"role": "user", "content": str(message) if message is not None else ""}
-    
+
     # Create a copy to avoid modifying the original
     message = message.copy()
-    
+
     # Ensure we have a role
     if 'role' not in message:
         message['role'] = 'user'
-    
+
     # Handle content - check if it exists and is not None
     if 'content' in message:
         content = message['content']
@@ -46,7 +46,7 @@ def ensure_string_content(message):
     else:
         # No content key at all
         message['content'] = ''
-    
+
     return message
 
 def ensure_string_function_args(function_call):
@@ -56,17 +56,17 @@ def ensure_string_function_args(function_call):
     """
     if not function_call:
         return None
-    
+
     # Check if function_call has arguments attribute
     if not hasattr(function_call, 'arguments'):
         return None
-        
+
     if function_call.arguments is None:
         return None
-        
+
     if isinstance(function_call.arguments, (dict, list)):
         return json.dumps(function_call.arguments)
-    
+
     return str(function_call.arguments)
 
 def build_cors_response(origin):
@@ -103,7 +103,7 @@ def load_agents_from_folder():
     storage_manager = AzureFileStorageManager()
     try:
         agent_files = storage_manager.list_files('agents')
-        
+
         for file in agent_files:
             if not file.name.endswith('_agent.py'):
                 continue
@@ -147,7 +147,7 @@ def load_agents_from_folder():
     # Load multi-agents from multi_agents folder
     try:
         multi_agent_files = storage_manager.list_files('multi_agents')
-        
+
         for file in multi_agent_files:
             if not file.name.endswith('_agent.py'):
                 continue
@@ -175,13 +175,13 @@ def load_agents_from_folder():
                 module_name = file.name[:-3]
                 spec = importlib.util.spec_from_file_location(f"multi_agents.{module_name}", temp_file)
                 module = importlib.util.module_from_spec(spec)
-                
+
                 # Create the multi_agents package if it doesn't exist
                 import types
                 if 'multi_agents' not in sys.modules:
                     multi_agents_module = types.ModuleType('multi_agents')
                     sys.modules['multi_agents'] = multi_agents_module
-                
+
                 # Add the module to the multi_agents package
                 sys.modules[f"multi_agents.{module_name}"] = module
                 spec.loader.exec_module(module)
@@ -225,14 +225,14 @@ class Assistant:
             )
 
         self.known_agents = self.reload_agents(declared_agents)
-        
+
         # Set the default user GUID instead of None
         self.user_guid = DEFAULT_USER_GUID
-        
+
         self.shared_memory = None
         self.user_memory = None
         self.storage_manager = AzureFileStorageManager()
-        
+
         # Initialize with the default user GUID memory
         self._initialize_context_memory(DEFAULT_USER_GUID)
 
@@ -240,7 +240,7 @@ class Assistant:
         """Check if the first message contains only a GUID"""
         if not conversation_history or len(conversation_history) == 0:
             return None
-            
+
         first_message = conversation_history[0]
         if first_message.get('role') == 'user':
             content = first_message.get('content')
@@ -264,39 +264,39 @@ class Assistant:
             # Always get shared memories with full_recall=True to ensure complete context
             self.storage_manager.set_memory_context(None)  # Reset to shared context
             self.shared_memory = str(context_memory_agent.perform(full_recall=True))
-            
+
             # If user_guid provided, get user-specific memories with full_recall=True
             # If no user_guid is provided, fall back to the default GUID
             if not user_guid:
                 user_guid = DEFAULT_USER_GUID
-                
+
             self.storage_manager.set_memory_context(user_guid)
             self.user_memory = str(context_memory_agent.perform(user_guid=user_guid, full_recall=True))
-            
+
         except Exception as e:
             logging.warning(f"Error initializing context memory: {str(e)}")
             self.shared_memory = "Context memory initialization failed."
             self.user_memory = "Context memory initialization failed."
-    
+
     def extract_user_guid(self, text):
         """Try to extract a GUID from user input, but only if it's the entire message"""
         if text is None:
             return None
-            
+
         text_str = str(text).strip()
-        
+
         # Only match if the entire message is just a GUID
         guid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
         match = guid_pattern.match(text_str)
         if match:
             return match.group(0)
-        
+
         # Also allow labeled GUIDs for explicit behavior
         labeled_guid_pattern = re.compile(r'^guid[:=\s]+([0-9a-f-]{36})$', re.IGNORECASE)
         match = labeled_guid_pattern.match(text_str)
         if match:
             return match.group(1)
-                
+
         return None
 
     def get_agent_metadata(self):
@@ -325,10 +325,10 @@ class Assistant:
     def prepare_messages(self, conversation_history):
         if not isinstance(conversation_history, list):
             conversation_history = []
-            
+
         messages = []
         current_datetime = datetime.now().strftime("%A, %B %d, %Y at %I:%M %p")
-        
+
         # System message
         system_message = {
             "role": "system",
@@ -422,16 +422,16 @@ Found a fixed-width format with 12 fields - probably mainframe data.
 """
         }
         messages.append(ensure_string_content(system_message))
-        
+
         # Process conversation history - skip first message if it's just a GUID
         guid_only_first_message = self._check_first_message_for_guid(conversation_history)
         start_idx = 1 if guid_only_first_message else 0
-        
+
         for i in range(start_idx, len(conversation_history)):
             messages.append(ensure_string_content(conversation_history[i]))
-            
+
         return messages
-    
+
     def get_openai_api_call(self, messages):
         try:
             response = self.client.chat.completions.create(
@@ -444,15 +444,15 @@ Found a fixed-width format with 12 fields - probably mainframe data.
         except Exception as e:
             logging.error(f"Error in OpenAI API call: {str(e)}")
             raise
-    
+
     def parse_response_with_voice(self, content):
         """Parse the response to extract formatted and voice parts"""
         if not content:
             return "", ""
-        
+
         # Split by the delimiter
         parts = content.split("|||VOICE|||")
-        
+
         if len(parts) >= 2:
             # We have both parts
             formatted_response = parts[0].strip()
@@ -469,7 +469,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
                 voice_response = re.sub(r'\s+', ' ', voice_response).strip()
             else:
                 voice_response = "I've completed your request."
-        
+
         return formatted_response, voice_response
 
     def get_response(self, prompt, conversation_history, max_retries=3, retry_delay=2):
@@ -477,9 +477,9 @@ Found a fixed-width format with 12 fields - probably mainframe data.
         # or if a GUID is in the conversation history or current prompt
         guid_from_history = self._check_first_message_for_guid(conversation_history)
         guid_from_prompt = self.extract_user_guid(prompt)
-        
+
         target_guid = guid_from_history or guid_from_prompt
-        
+
         # Set or update the memory context if we have a GUID that's different from current
         if target_guid and target_guid != self.user_guid:
             self.user_guid = target_guid
@@ -490,16 +490,16 @@ Found a fixed-width format with 12 fields - probably mainframe data.
             self.user_guid = DEFAULT_USER_GUID
             self._initialize_context_memory(self.user_guid)
             logging.info(f"Using default User GUID: {self.user_guid}")
-        
+
         # Ensure prompt is string
         prompt = str(prompt) if prompt is not None else ""
-        
+
         # Skip processing if the prompt is just a GUID and we've already set the context
         if guid_from_prompt and prompt.strip() == guid_from_prompt and self.user_guid == guid_from_prompt:
             formatted = "I've successfully loaded your data connection patterns and memories. Ready to analyze any data format you provide."
             voice = "Data patterns loaded - ready to connect to any format."
             return formatted, voice, ""
-        
+
         messages = self.prepare_messages(conversation_history)
         messages.append(ensure_string_content({"role": "user", "content": prompt}))
 
@@ -529,7 +529,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
 
                 try:
                     agent_parameters = safe_json_loads(json_data)
-                    
+
                     # Sanitize parameters - ensure none are undefined or None
                     sanitized_parameters = {}
                     for key, value in agent_parameters.items():
@@ -537,23 +537,23 @@ Found a fixed-width format with 12 fields - probably mainframe data.
                             sanitized_parameters[key] = ""  # Convert None to empty string
                         else:
                             sanitized_parameters[key] = value
-                    
+
                     # Add user_guid to agent parameters if agent accepts it
                     # Always use the current user_guid (which might be the default)
                     if agent_name in ['ManageMemory', 'ContextMemory']:
                         sanitized_parameters['user_guid'] = self.user_guid
-                    
+
                     # Always perform agent call - no caching
                     result = agent.perform(**sanitized_parameters)
-                    
+
                     # Ensure result is a string
                     if result is None:
                         result = "Agent completed successfully"
                     else:
                         result = str(result)
-                        
+
                     agent_logs.append(f"Performed {agent_name} and got result: {result}")
-                        
+
                 except Exception as e:
                     return f"Error parsing parameters: {str(e)}", "I hit an error processing that.", ""
 
@@ -563,7 +563,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
                     "name": agent_name,
                     "content": result
                 })
-                
+
                 # EVALUATION: Check if we need a follow-up function call
                 try:
                     result_json = json.loads(result)
@@ -579,7 +579,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
                 except:
                     # If we can't parse the result as JSON, assume no follow-up needed
                     needs_follow_up = False
-                
+
                 # If we don't need a follow-up, get the final response and return
                 if not needs_follow_up:
                     final_response = self.get_openai_api_call(messages)
@@ -601,7 +601,7 @@ Found a fixed-width format with 12 fields - probably mainframe data.
 
 app = func.FunctionApp()
 
-@app.route(route="data_connector_function", auth_level=func.AuthLevel.FUNCTION)
+@app.route(route="businessinsightbot_function", auth_level=func.AuthLevel.FUNCTION)
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
@@ -636,18 +636,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         user_input = ""
     else:
         user_input = str(user_input)
-    
+
     # Ensure conversation_history is list and contents are properly formatted
     conversation_history = req_body.get('conversation_history', [])
     if not isinstance(conversation_history, list):
         conversation_history = []
-    
+
     # Extract user_guid if provided in the request
     user_guid = req_body.get('user_guid')
-    
+
     # Skip validation if input is just a GUID to load memory
     is_guid_only = re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_input.strip(), re.IGNORECASE)
-    
+
     # Validate user input for non-GUID requests
     if not is_guid_only and not user_input.strip():
         return func.HttpResponse(
@@ -663,7 +663,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         agents = load_agents_from_folder()
         # Create a new Assistant instance for each request
         assistant = Assistant(agents)
-        
+
         # Set user_guid if provided in the request or found in input
         if user_guid:
             assistant.user_guid = user_guid
@@ -672,7 +672,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             assistant.user_guid = user_input.strip()
             assistant._initialize_context_memory(user_input.strip())
         # Otherwise, the default GUID will be used (already set in __init__)
-            
+
         assistant_response, voice_response, agent_logs = assistant.get_response(
             user_input, conversation_history)
 

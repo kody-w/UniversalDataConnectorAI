@@ -1002,6 +1002,59 @@
             color: var(--text-primary);
         }
 
+        /* Learning Session Display */
+        .learning-session-display {
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .data-sample-input {
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            color: #60a5fa;
+            width: 100%;
+            resize: vertical;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         /* Settings */
         .settings-grid {
             display: grid;
@@ -1058,6 +1111,16 @@
         .empty-state-text {
             color: var(--text-secondary);
             margin-bottom: 24px;
+        }
+
+        /* Clear Cache Button */
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
         }
 
         /* Responsive Design */
@@ -1372,8 +1435,48 @@
                 <!-- Tutorial Page -->
                 <div id="tutorialPage" class="page-content" style="display: none;">
                     <div class="tutorial-container">
-                        <h2 style="margin-bottom: 24px;">Interactive Tutorial: JSONPlaceholder to SQL Database</h2>
-                        <div id="tutorialSteps"></div>
+                        <h2 style="margin-bottom: 24px;">Complete Tutorial: Learn New Data Sources Dynamically</h2>
+                        
+                        <!-- Section 1: Basic Setup Tutorial -->
+                        <div style="margin-bottom: 40px;">
+                            <h3 style="margin-bottom: 20px; color: var(--primary-color);">Part 1: Basic Data Connection Setup</h3>
+                            <div id="basicTutorialSteps"></div>
+                        </div>
+
+                        <!-- Section 2: Dynamic Connector Learning Tutorial -->
+                        <div style="margin-bottom: 40px;">
+                            <h3 style="margin-bottom: 20px; color: var(--secondary-color);">Part 2: Learn Unknown Data Source (Dynamic Connector Learning)</h3>
+                            
+                            <!-- New Data Source Input -->
+                            <div class="tutorial-step">
+                                <div class="tutorial-step-header">
+                                    <div class="tutorial-step-number" style="background: var(--secondary-color);">A</div>
+                                    <div class="tutorial-step-title">Prepare Unknown Data Sample</div>
+                                </div>
+                                <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                                    Paste an unknown data format below. The system will learn to understand it automatically.
+                                    Example: Fixed-width mainframe data, custom CSV, proprietary format, etc.
+                                </p>
+                                <textarea class="data-sample-input" id="unknownDataSample" placeholder="Paste your unknown data here...">001234SMITH     JOHN      19850315100000.00A
+001235JONES     MARY      19900620075000.00B
+001236WILSON    ROBERT    19920815050000.00C
+001237DAVIS     SARAH     19881225125000.00A
+001238BROWN     MICHAEL   19951107089999.99B</textarea>
+                                
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label class="form-label">Source Name</label>
+                                    <input type="text" class="form-input" id="sourceName" placeholder="e.g., Legacy_Mainframe_System" value="Legacy_Mainframe_Export">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Context Information (optional)</label>
+                                    <input type="text" class="form-input" id="contextInfo" placeholder="e.g., 1980s COBOL export, fixed-width format" value="Old mainframe export from COBOL system, possibly fixed-width">
+                                </div>
+                            </div>
+
+                            <!-- Learning Steps -->
+                            <div id="learningTutorialSteps"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1384,7 +1487,7 @@
                             <h3 class="settings-title">Azure Connection</h3>
                             <div class="form-group">
                                 <label class="form-label">Azure Function URL</label>
-                                <input type="text" class="form-input" id="azureFunctionUrl" placeholder="https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/data_connector_function" value="https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/data_connector_function">
+                                <input type="text" class="form-input" id="azureFunctionUrl" placeholder="https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/businessinsightbot_function" value="https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/businessinsightbot_function">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">User GUID</label>
@@ -1392,6 +1495,18 @@
                             </div>
                             <button class="btn" onclick="saveSettings()">Save & Connect</button>
                             <button class="btn btn-secondary" onclick="testConnection()">Test Connection</button>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3 class="settings-title">Cache Management</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                                Application data is automatically cached to preserve your progress.
+                            </p>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-secondary" onclick="exportCache()">Export Cache</button>
+                                <button class="btn btn-danger" onclick="clearAllCache()">Clear All Cache</button>
+                            </div>
+                            <div class="response-display" id="cacheInfo" style="margin-top: 16px; display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -1403,7 +1518,22 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // Global State Management
+        // Cache Keys
+        const CACHE_KEYS = {
+            APP_STATE: 'udc_app_state',
+            CONNECTIONS: 'udc_connections',
+            METRICS: 'udc_metrics',
+            CONVERSATION_HISTORY: 'udc_conversation_history',
+            LEARNING_SESSION: 'udc_learning_session',
+            TUTORIAL_PROGRESS: 'udc_tutorial_progress',
+            QUERY_HISTORY: 'udc_query_history',
+            PIPELINE_STATE: 'udc_pipeline_state',
+            RESPONSES: 'udc_responses',
+            SETTINGS: 'udc_settings',
+            FORM_DATA: 'udc_form_data'
+        };
+
+        // Global State Management with cache loading
         const appState = {
             currentPage: 'dashboard',
             isConnected: false,
@@ -1417,11 +1547,246 @@
                 cacheHits: 0,
                 dataProcessed: 0
             },
-            conversationHistory: []
+            conversationHistory: [],
+            learningSession: null,
+            queryHistory: [],
+            pipelineState: {},
+            tutorialProgress: {
+                basic: [],
+                learning: []
+            },
+            responses: {},
+            lastUpdate: null
         };
 
-        // Tutorial Steps with ACTUAL Commands
-        const tutorialSteps = [
+        // Cache Management Functions
+        function saveToCache(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                return true;
+            } catch (e) {
+                console.error(`Failed to save to cache: ${key}`, e);
+                return false;
+            }
+        }
+
+        function loadFromCache(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error(`Failed to load from cache: ${key}`, e);
+                return null;
+            }
+        }
+
+        function saveAllState() {
+            appState.lastUpdate = new Date().toISOString();
+            
+            saveToCache(CACHE_KEYS.APP_STATE, {
+                currentPage: appState.currentPage,
+                isConnected: appState.isConnected,
+                azureFunctionUrl: appState.azureFunctionUrl,
+                userGuid: appState.userGuid,
+                learningSession: appState.learningSession,
+                lastUpdate: appState.lastUpdate
+            });
+            
+            saveToCache(CACHE_KEYS.CONNECTIONS, appState.connections);
+            saveToCache(CACHE_KEYS.METRICS, appState.metrics);
+            saveToCache(CACHE_KEYS.CONVERSATION_HISTORY, appState.conversationHistory);
+            saveToCache(CACHE_KEYS.QUERY_HISTORY, appState.queryHistory);
+            saveToCache(CACHE_KEYS.PIPELINE_STATE, appState.pipelineState);
+            saveToCache(CACHE_KEYS.TUTORIAL_PROGRESS, appState.tutorialProgress);
+            saveToCache(CACHE_KEYS.RESPONSES, appState.responses);
+            
+            // Save form data
+            const formData = {
+                unknownDataSample: document.getElementById('unknownDataSample')?.value,
+                sourceName: document.getElementById('sourceName')?.value,
+                contextInfo: document.getElementById('contextInfo')?.value,
+                sqlConnectionString: document.getElementById('sqlConnectionString')?.value,
+                sqlQueryEditor: document.getElementById('sqlQueryEditor')?.value,
+                apiEndpoint: document.getElementById('apiEndpoint')?.value,
+                apiMethod: document.getElementById('apiMethod')?.value,
+                naturalQuery: document.getElementById('naturalQuery')?.value
+            };
+            saveToCache(CACHE_KEYS.FORM_DATA, formData);
+        }
+
+        function loadAllState() {
+            // Load app state
+            const savedState = loadFromCache(CACHE_KEYS.APP_STATE);
+            if (savedState) {
+                Object.assign(appState, savedState);
+            }
+
+            // Load collections
+            appState.connections = loadFromCache(CACHE_KEYS.CONNECTIONS) || [];
+            appState.metrics = loadFromCache(CACHE_KEYS.METRICS) || appState.metrics;
+            appState.conversationHistory = loadFromCache(CACHE_KEYS.CONVERSATION_HISTORY) || [];
+            appState.queryHistory = loadFromCache(CACHE_KEYS.QUERY_HISTORY) || [];
+            appState.pipelineState = loadFromCache(CACHE_KEYS.PIPELINE_STATE) || {};
+            appState.tutorialProgress = loadFromCache(CACHE_KEYS.TUTORIAL_PROGRESS) || { basic: [], learning: [] };
+            appState.responses = loadFromCache(CACHE_KEYS.RESPONSES) || {};
+
+            // Restore form data
+            const formData = loadFromCache(CACHE_KEYS.FORM_DATA);
+            if (formData) {
+                setTimeout(() => {
+                    if (formData.unknownDataSample && document.getElementById('unknownDataSample')) {
+                        document.getElementById('unknownDataSample').value = formData.unknownDataSample;
+                    }
+                    if (formData.sourceName && document.getElementById('sourceName')) {
+                        document.getElementById('sourceName').value = formData.sourceName;
+                    }
+                    if (formData.contextInfo && document.getElementById('contextInfo')) {
+                        document.getElementById('contextInfo').value = formData.contextInfo;
+                    }
+                    if (formData.sqlConnectionString && document.getElementById('sqlConnectionString')) {
+                        document.getElementById('sqlConnectionString').value = formData.sqlConnectionString;
+                    }
+                    if (formData.sqlQueryEditor && document.getElementById('sqlQueryEditor')) {
+                        document.getElementById('sqlQueryEditor').value = formData.sqlQueryEditor;
+                    }
+                    if (formData.apiEndpoint && document.getElementById('apiEndpoint')) {
+                        document.getElementById('apiEndpoint').value = formData.apiEndpoint;
+                    }
+                    if (formData.apiMethod && document.getElementById('apiMethod')) {
+                        document.getElementById('apiMethod').value = formData.apiMethod;
+                    }
+                    if (formData.naturalQuery && document.getElementById('naturalQuery')) {
+                        document.getElementById('naturalQuery').value = formData.naturalQuery;
+                    }
+                }, 100);
+            }
+
+            // Update UI
+            updateUIFromState();
+        }
+
+        function updateUIFromState() {
+            // Update dashboard
+            document.getElementById('activeConnections').textContent = appState.connections.length;
+            document.getElementById('queriesExecuted').textContent = appState.metrics.totalRequests;
+            updateDashboard();
+
+            // Update connection status
+            if (appState.isConnected) {
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                document.getElementById('connectionDot').classList.add('connected');
+            }
+
+            // Update connections list
+            updateConnectionsList();
+
+            // Update tutorial progress
+            restoreTutorialProgress();
+
+            // Navigate to last page
+            if (appState.currentPage && appState.currentPage !== 'dashboard') {
+                setTimeout(() => {
+                    const navItem = document.querySelector(`.nav-item[onclick*="${appState.currentPage}"]`);
+                    if (navItem) {
+                        navItem.click();
+                    }
+                }, 100);
+            }
+
+            // Restore last response
+            if (appState.responses.dashboard) {
+                document.getElementById('dashboardResponse').textContent = appState.responses.dashboard;
+            }
+
+            // Show cache restored message
+            if (appState.lastUpdate) {
+                const lastUpdate = new Date(appState.lastUpdate);
+                const timeAgo = getTimeAgo(lastUpdate);
+                showToast(`Session restored from ${timeAgo}`, 'info');
+            }
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+
+            for (const [name, value] of Object.entries(intervals)) {
+                const count = Math.floor(seconds / value);
+                if (count >= 1) {
+                    return count === 1 ? `1 ${name} ago` : `${count} ${name}s ago`;
+                }
+            }
+            return 'just now';
+        }
+
+        function restoreTutorialProgress() {
+            // Restore basic tutorial progress
+            if (appState.tutorialProgress.basic && appState.tutorialProgress.basic.length > 0) {
+                basicTutorialSteps.forEach((step, index) => {
+                    if (appState.tutorialProgress.basic[index]) {
+                        step.status = appState.tutorialProgress.basic[index].status || 'pending';
+                    }
+                });
+            }
+
+            // Restore learning tutorial progress
+            if (appState.tutorialProgress.learning && appState.tutorialProgress.learning.length > 0) {
+                learningTutorialSteps.forEach((step, index) => {
+                    if (appState.tutorialProgress.learning[index]) {
+                        step.status = appState.tutorialProgress.learning[index].status || 'pending';
+                    }
+                });
+            }
+        }
+
+        function clearAllCache() {
+            if (confirm('This will clear all cached data and reset the application. Are you sure?')) {
+                Object.values(CACHE_KEYS).forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                localStorage.removeItem('azureFunctionUrl');
+                localStorage.removeItem('userGuid');
+                
+                showToast('All cache cleared. Refreshing...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        }
+
+        function exportCache() {
+            const allData = {};
+            Object.entries(CACHE_KEYS).forEach(([name, key]) => {
+                allData[name] = loadFromCache(key);
+            });
+
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `udc_cache_export_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showToast('Cache exported successfully', 'success');
+        }
+
+        // Auto-save on important actions
+        function autoSave() {
+            saveAllState();
+        }
+
+        // Basic Tutorial Steps
+        const basicTutorialSteps = [
             {
                 title: 'Step 1: Register API Connector',
                 description: 'Register the JSONPlaceholder API in the system',
@@ -1435,57 +1800,120 @@
                 status: 'pending'
             },
             {
-                title: 'Step 3: Fetch Posts from JSONPlaceholder',
-                description: 'Retrieve posts from the API',
-                command: `Use APIConnector to fetch from endpoint: https://jsonplaceholder.typicode.com/posts?_limit=20 with method: GET and cache_result: true`,
-                status: 'pending'
-            },
-            {
-                title: 'Step 4: Analyze Data Structure',
-                description: 'Use SchemaLearner to understand the data structure',
-                command: `Use SchemaLearner agent with action: analyze to examine the cached user data structure from JSONPlaceholder`,
-                status: 'pending'
-            },
-            {
-                title: 'Step 5: Create SQL Database Schema',
+                title: 'Step 3: Create SQL Database Schema',
                 description: 'Create tables in SQLite database',
-                command: `Use SQLConnector with connection_string: sqlite://test_db/jsonplaceholder.db and operation: schema to create users table with columns: id INTEGER PRIMARY KEY, name TEXT, username TEXT, email TEXT, phone TEXT, website TEXT, and posts table with columns: id INTEGER PRIMARY KEY, userId INTEGER, title TEXT, body TEXT`,
+                command: `Use SQLConnector with connection_string: sqlite://test_db/jsonplaceholder.db and operation: schema to create users table with columns: id INTEGER PRIMARY KEY, name TEXT, username TEXT, email TEXT, phone TEXT, website TEXT`,
                 status: 'pending'
             },
             {
-                title: 'Step 6: Insert Users into Database',
-                description: 'Store the fetched user data in SQL',
-                command: `Use DataCache to retrieve cached users data, then use SQLConnector to insert all users into the database`,
-                status: 'pending'
-            },
-            {
-                title: 'Step 7: Query the Database',
+                title: 'Step 4: Query the Database',
                 description: 'Run a SQL query to verify data',
                 command: `Use SQLConnector with query: SELECT name, email FROM users WHERE email LIKE '%.biz' to find users with .biz emails`,
                 status: 'pending'
-            },
+            }
+        ];
+
+        // Dynamic Learning Tutorial Steps
+        const learningTutorialSteps = [
             {
-                title: 'Step 8: Generate Performance Report',
-                description: 'Check system performance metrics',
-                command: `Use ConnectorRegistry to get performance report for all connectors and show cache statistics`,
+                title: 'Step 1: Initialize Learning Session',
+                description: 'Start the Dynamic Connector Learning Orchestrator',
+                command: null,
+                generateCommand: () => {
+                    const data = document.getElementById('unknownDataSample').value;
+                    const sourceName = document.getElementById('sourceName').value;
+                    const context = document.getElementById('contextInfo').value;
+                    return `Use DynamicConnectorLearningOrchestrator with action: learn_new_source, data_sample: "${data.substring(0, 200)}...", source_name: "${sourceName}", context_info: "${context}", auto_approve: false`;
+                },
                 status: 'pending'
             },
             {
-                title: 'Step 9: Export Data to CSV',
-                description: 'Export query results to CSV format',
-                command: `Use IntelligentFormatSynthesis to convert the query results to CSV format and save to exports/users_analysis.csv`,
+                title: 'Step 2: Review Analysis Results',
+                description: 'Check the learning session status and analysis confidence',
+                command: null,
+                generateCommand: () => {
+                    if (appState.learningSession) {
+                        return `Use DynamicConnectorLearningOrchestrator with action: get_status, connector_id: "${appState.learningSession}"`;
+                    }
+                    return 'First complete Step 1 to get a session ID';
+                },
+                status: 'pending'
+            },
+            {
+                title: 'Step 3: Test the Learned Connector',
+                description: 'Test with additional data to verify the connector works',
+                command: null,
+                generateCommand: () => {
+                    if (appState.learningSession) {
+                        return `Use DynamicConnectorLearningOrchestrator with action: test_connector, connector_id: "${appState.learningSession}", test_data: "001239THOMAS    JENNIFER  19931012075000.00A"`;
+                    }
+                    return 'First complete Step 1 to get a session ID';
+                },
+                status: 'pending'
+            },
+            {
+                title: 'Step 4: Finalize the Connector',
+                description: 'Register the learned connector permanently in the system',
+                command: null,
+                generateCommand: () => {
+                    if (appState.learningSession) {
+                        return `Use DynamicConnectorLearningOrchestrator with action: finalize_connector, connector_id: "${appState.learningSession}"`;
+                    }
+                    return 'First complete Step 1 to get a session ID';
+                },
+                status: 'pending'
+            },
+            {
+                title: 'Step 5: Use the New Connector',
+                description: 'Parse data using your newly learned connector',
+                command: null,
+                generateCommand: () => {
+                    const sourceName = document.getElementById('sourceName').value.replace(/[^a-zA-Z0-9]/g, '');
+                    return `Use ${sourceName}Connector with action: parse, data: "001240ANDERSON  WILLIAM   19900505100000.00B"`;
+                },
+                status: 'pending'
+            },
+            {
+                title: 'Step 6: Transform to Different Format',
+                description: 'Convert the data to CSV using the learned connector',
+                command: null,
+                generateCommand: () => {
+                    const sourceName = document.getElementById('sourceName').value.replace(/[^a-zA-Z0-9]/g, '');
+                    const data = document.getElementById('unknownDataSample').value;
+                    return `Use ${sourceName}Connector to parse the data, then use IntelligentFormatSynthesis to convert it to CSV format`;
+                },
                 status: 'pending'
             }
         ];
 
         // Initialize Application
         document.addEventListener('DOMContentLoaded', function() {
+            // Load all cached state first
+            loadAllState();
+            
+            // Load settings
             loadSettings();
-            generateTutorialSteps();
-            updateDashboard();
+            
+            // Generate tutorial steps
+            generateBasicTutorialSteps();
+            generateLearningTutorialSteps();
+            
+            // Set up auto-save
+            setInterval(autoSave, 30000); // Auto-save every 30 seconds
+            
+            // Save on page unload
+            window.addEventListener('beforeunload', autoSave);
+            
+            // Save on form changes
+            document.addEventListener('change', autoSave);
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('input, textarea, select')) {
+                    autoSave();
+                }
+            });
         });
 
-        // Azure Function Integration - REAL Implementation
+        // Azure Function Integration
         async function callAzureFunction(command) {
             if (!appState.azureFunctionUrl) {
                 throw new Error('Please configure Azure Function URL in Settings first');
@@ -1526,37 +1954,41 @@
                         role: 'assistant',
                         content: data.assistant_response
                     });
+
+                    // Extract session ID if this was a learning session
+                    const sessionMatch = data.assistant_response.match(/session_id["\s:]+([a-f0-9]{12})/);
+                    if (sessionMatch) {
+                        appState.learningSession = sessionMatch[1];
+                        showToast(`Learning session created: ${appState.learningSession}`, 'success');
+                    }
                 }
 
-                // Update metrics from response
-                if (data.cached_queries) {
-                    appState.metrics.cacheHits += data.cached_queries;
-                }
-                
-                if (data.connected_sources) {
-                    document.getElementById('activeConnections').textContent = data.connected_sources;
-                }
-
+                // Update metrics
                 appState.metrics.successfulRequests++;
                 updateDashboard();
+                
+                // Save state after successful call
+                autoSave();
 
                 return data;
             } catch (error) {
                 appState.metrics.failedRequests++;
                 updateDashboard();
+                autoSave();
                 throw error;
             }
         }
 
-        // Quick Actions - Real Commands
+        // Quick Actions
         async function quickFetchUsers() {
             try {
                 const result = await callAzureFunction(
                     'Use APIConnector to fetch data from endpoint: https://jsonplaceholder.typicode.com/users with method: GET and cache_result: true'
                 );
                 
-                document.getElementById('dashboardResponse').textContent = 
-                    result.assistant_response || JSON.stringify(result, null, 2);
+                appState.responses.dashboard = result.assistant_response || JSON.stringify(result, null, 2);
+                document.getElementById('dashboardResponse').textContent = appState.responses.dashboard;
+                autoSave();
                 
                 showToast('Users fetched successfully!', 'success');
             } catch (error) {
@@ -1570,8 +2002,9 @@
                     'Use SQLConnector with connection_string: sqlite://test_db/jsonplaceholder.db and operation: schema to create users and posts tables'
                 );
                 
-                document.getElementById('dashboardResponse').textContent = 
-                    result.assistant_response || JSON.stringify(result, null, 2);
+                appState.responses.dashboard = result.assistant_response || JSON.stringify(result, null, 2);
+                document.getElementById('dashboardResponse').textContent = appState.responses.dashboard;
+                autoSave();
                 
                 showToast('Database created!', 'success');
             } catch (error) {
@@ -1585,8 +2018,9 @@
                     'Use SchemaLearner to analyze the structure of all cached data'
                 );
                 
-                document.getElementById('dashboardResponse').textContent = 
-                    result.assistant_response || JSON.stringify(result, null, 2);
+                appState.responses.dashboard = result.assistant_response || JSON.stringify(result, null, 2);
+                document.getElementById('dashboardResponse').textContent = appState.responses.dashboard;
+                autoSave();
                 
                 showToast('Analysis complete!', 'success');
             } catch (error) {
@@ -1600,13 +2034,207 @@
                     'Use DataCache to show cache statistics and all cached data keys'
                 );
                 
-                document.getElementById('dashboardResponse').textContent = 
-                    result.assistant_response || JSON.stringify(result, null, 2);
+                appState.responses.dashboard = result.assistant_response || JSON.stringify(result, null, 2);
+                document.getElementById('dashboardResponse').textContent = appState.responses.dashboard;
+                autoSave();
                 
                 showToast('Cache status retrieved!', 'success');
             } catch (error) {
                 showToast(`Failed: ${error.message}`, 'error');
             }
+        }
+
+        // Tutorial Functions
+        function generateBasicTutorialSteps() {
+            const container = document.getElementById('basicTutorialSteps');
+            if (!container) return;
+            
+            container.innerHTML = basicTutorialSteps.map((step, index) => `
+                <div class="tutorial-step ${step.status === 'completed' ? 'completed' : ''}" id="basic-tutorial-step-${index}">
+                    <div class="tutorial-step-header">
+                        <div class="tutorial-step-number">${index + 1}</div>
+                        <div class="tutorial-step-title">${step.title}</div>
+                        <span class="tutorial-step-status ${step.status}" id="basic-tutorial-status-${index}">
+                            ${step.status}
+                        </span>
+                    </div>
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                        ${step.description}
+                    </p>
+                    <div class="code-block">
+                        ${step.command}
+                        <button class="copy-button" onclick="copyToClipboard(\`${step.command.replace(/`/g, '\\`')}\`)">Copy</button>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                        <button class="btn btn-success" onclick="runBasicTutorialStep(${index})">
+                            <span class="spinner" id="basic-spinner-${index}" style="display: none;"></span>
+                            <span id="basic-btn-text-${index}">Run Step</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateLearningTutorialSteps() {
+            const container = document.getElementById('learningTutorialSteps');
+            if (!container) return;
+            
+            container.innerHTML = learningTutorialSteps.map((step, index) => `
+                <div class="tutorial-step ${step.status === 'completed' ? 'completed' : ''}" id="learning-tutorial-step-${index}">
+                    <div class="tutorial-step-header">
+                        <div class="tutorial-step-number" style="background: var(--secondary-color);">${index + 1}</div>
+                        <div class="tutorial-step-title">${step.title}</div>
+                        <span class="tutorial-step-status ${step.status}" id="learning-tutorial-status-${index}">
+                            ${step.status}
+                        </span>
+                    </div>
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                        ${step.description}
+                    </p>
+                    <div class="code-block" id="learning-command-${index}">
+                        ${step.generateCommand ? step.generateCommand() : (step.command || 'Command will be generated...')}
+                        <button class="copy-button" onclick="copyDynamicCommand(${index})">Copy</button>
+                    </div>
+                    ${index === 1 ? '<div class="learning-session-display" id="sessionDisplay" style="display: none;"></div>' : ''}
+                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                        <button class="btn" style="background: var(--secondary-color);" onclick="runLearningTutorialStep(${index})">
+                            <span class="spinner" id="learning-spinner-${index}" style="display: none;"></span>
+                            <span id="learning-btn-text-${index}">Run Step</span>
+                        </button>
+                        ${index === 0 ? '<button class="btn btn-secondary" onclick="updateLearningCommands()">Update Commands</button>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function runBasicTutorialStep(index) {
+            const step = basicTutorialSteps[index];
+            const statusElement = document.getElementById(`basic-tutorial-status-${index}`);
+            const stepElement = document.getElementById(`basic-tutorial-step-${index}`);
+            const spinner = document.getElementById(`basic-spinner-${index}`);
+            const btnText = document.getElementById(`basic-btn-text-${index}`);
+            
+            statusElement.textContent = 'running';
+            statusElement.className = 'tutorial-step-status running';
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Running...';
+            
+            try {
+                const response = await callAzureFunction(step.command);
+                
+                step.status = 'completed';
+                statusElement.textContent = 'completed';
+                statusElement.className = 'tutorial-step-status completed';
+                stepElement.classList.add('completed');
+                
+                // Save tutorial progress
+                appState.tutorialProgress.basic[index] = { status: 'completed' };
+                autoSave();
+                
+                showToast(`Step ${index + 1} completed!`, 'success');
+                
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'response-display';
+                responseDiv.style.marginTop = '16px';
+                responseDiv.textContent = response.assistant_response || JSON.stringify(response, null, 2);
+                stepElement.appendChild(responseDiv);
+                
+            } catch (error) {
+                step.status = 'failed';
+                statusElement.textContent = 'failed';
+                statusElement.className = 'tutorial-step-status failed';
+                
+                showToast(`Step ${index + 1} failed: ${error.message}`, 'error');
+            } finally {
+                spinner.style.display = 'none';
+                btnText.textContent = 'Run Step';
+            }
+        }
+
+        async function runLearningTutorialStep(index) {
+            const step = learningTutorialSteps[index];
+            const statusElement = document.getElementById(`learning-tutorial-status-${index}`);
+            const stepElement = document.getElementById(`learning-tutorial-step-${index}`);
+            const spinner = document.getElementById(`learning-spinner-${index}`);
+            const btnText = document.getElementById(`learning-btn-text-${index}`);
+            
+            // Generate command dynamically
+            const command = step.generateCommand ? step.generateCommand() : step.command;
+            
+            if (!command || command.includes('First complete')) {
+                showToast('Please complete the previous steps first', 'warning');
+                return;
+            }
+            
+            statusElement.textContent = 'running';
+            statusElement.className = 'tutorial-step-status running';
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Running...';
+            
+            try {
+                const response = await callAzureFunction(command);
+                
+                step.status = 'completed';
+                statusElement.textContent = 'completed';
+                statusElement.className = 'tutorial-step-status completed';
+                stepElement.classList.add('completed');
+                
+                // Save tutorial progress
+                appState.tutorialProgress.learning[index] = { status: 'completed' };
+                autoSave();
+                
+                // Special handling for session display
+                if (index === 1 && response.assistant_response) {
+                    const sessionDisplay = document.getElementById('sessionDisplay');
+                    if (sessionDisplay) {
+                        sessionDisplay.style.display = 'block';
+                        sessionDisplay.textContent = response.assistant_response;
+                    }
+                }
+                
+                showToast(`Learning Step ${index + 1} completed!`, 'success');
+                
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'response-display';
+                responseDiv.style.marginTop = '16px';
+                responseDiv.textContent = response.assistant_response || JSON.stringify(response, null, 2);
+                stepElement.appendChild(responseDiv);
+                
+                // Update commands for next steps
+                if (index === 0) {
+                    updateLearningCommands();
+                }
+                
+            } catch (error) {
+                step.status = 'failed';
+                statusElement.textContent = 'failed';
+                statusElement.className = 'tutorial-step-status failed';
+                
+                showToast(`Learning Step ${index + 1} failed: ${error.message}`, 'error');
+            } finally {
+                spinner.style.display = 'none';
+                btnText.textContent = 'Run Step';
+            }
+        }
+
+        function updateLearningCommands() {
+            // Update all learning commands based on current state
+            learningTutorialSteps.forEach((step, index) => {
+                if (step.generateCommand) {
+                    const commandDiv = document.getElementById(`learning-command-${index}`);
+                    if (commandDiv) {
+                        const newCommand = step.generateCommand();
+                        commandDiv.innerHTML = `${newCommand}<button class="copy-button" onclick="copyDynamicCommand(${index})">Copy</button>`;
+                    }
+                }
+            });
+            showToast('Commands updated with session information', 'info');
+        }
+
+        function copyDynamicCommand(index) {
+            const step = learningTutorialSteps[index];
+            const command = step.generateCommand ? step.generateCommand() : step.command;
+            copyToClipboard(command);
         }
 
         // Connection Management
@@ -1627,6 +2255,7 @@
                     status: 'active'
                 });
                 
+                autoSave();
                 updateConnectionsList();
                 showToast('JSONPlaceholder API registered!', 'success');
             } catch (error) {
@@ -1649,6 +2278,15 @@
                     `Use SQLConnector with connection_string: ${connectionString} and query: ${query} to execute the SQL query`
                 );
                 
+                // Save to query history
+                appState.queryHistory.push({
+                    type: 'sql',
+                    query: query,
+                    timestamp: new Date().toISOString(),
+                    result: result.assistant_response
+                });
+                autoSave();
+                
                 displayQueryResults(result);
             } catch (error) {
                 showToast(`Query failed: ${error.message}`, 'error');
@@ -1664,6 +2302,16 @@
                     `Use APIConnector to fetch from endpoint: ${endpoint} with method: ${method}`
                 );
                 
+                // Save to query history
+                appState.queryHistory.push({
+                    type: 'api',
+                    endpoint: endpoint,
+                    method: method,
+                    timestamp: new Date().toISOString(),
+                    result: result.assistant_response
+                });
+                autoSave();
+                
                 displayQueryResults(result);
             } catch (error) {
                 showToast(`API request failed: ${error.message}`, 'error');
@@ -1675,6 +2323,16 @@
             
             try {
                 const result = await callAzureFunction(query);
+                
+                // Save to query history
+                appState.queryHistory.push({
+                    type: 'natural',
+                    query: query,
+                    timestamp: new Date().toISOString(),
+                    result: result.assistant_response
+                });
+                autoSave();
+                
                 displayQueryResults(result);
             } catch (error) {
                 showToast(`Query failed: ${error.message}`, 'error');
@@ -1699,6 +2357,13 @@
             const node = document.getElementById(`node-${step}`);
             node.classList.add('active');
             
+            // Save pipeline state
+            appState.pipelineState[step] = {
+                status: 'running',
+                timestamp: new Date().toISOString()
+            };
+            autoSave();
+            
             const commands = {
                 extract: 'Use APIConnector to fetch all data from JSONPlaceholder API endpoints: /users, /posts, /comments with caching enabled',
                 transform: 'Use SchemaLearner to analyze all cached data and suggest optimal database schema',
@@ -1707,12 +2372,20 @@
             
             try {
                 const result = await callAzureFunction(commands[step]);
+                
+                appState.pipelineState[step].status = 'completed';
+                appState.pipelineState[step].result = result.assistant_response;
+                autoSave();
+                
                 document.getElementById('pipelineOutput').textContent = 
                     result.assistant_response || JSON.stringify(result, null, 2);
                     
                 showToast(`Pipeline step "${step}" completed!`, 'success');
             } catch (error) {
                 node.classList.remove('active');
+                appState.pipelineState[step].status = 'failed';
+                autoSave();
+                
                 showToast(`Pipeline step failed: ${error.message}`, 'error');
             }
         }
@@ -1729,91 +2402,16 @@
             showToast('Pipeline completed successfully!', 'success');
         }
 
-        // Tutorial Functions
-        function generateTutorialSteps() {
-            const container = document.getElementById('tutorialSteps');
-            if (!container) return;
-            
-            container.innerHTML = tutorialSteps.map((step, index) => `
-                <div class="tutorial-step" id="tutorial-step-${index}">
-                    <div class="tutorial-step-header">
-                        <div class="tutorial-step-number">${index + 1}</div>
-                        <div class="tutorial-step-title">${step.title}</div>
-                        <span class="tutorial-step-status ${step.status}" id="tutorial-status-${index}">
-                            ${step.status}
-                        </span>
-                    </div>
-                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
-                        ${step.description}
-                    </p>
-                    <div class="code-block">
-                        ${step.command}
-                        <button class="copy-button" onclick="copyToClipboard(\`${step.command.replace(/`/g, '\\`')}\`)">Copy</button>
-                    </div>
-                    <div style="margin-top: 16px; display: flex; gap: 12px;">
-                        <button class="btn btn-success" onclick="runTutorialStep(${index})">
-                            <span class="spinner" id="spinner-${index}" style="display: none;"></span>
-                            <span id="btn-text-${index}">Run Step</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function runTutorialStep(index) {
-            const step = tutorialSteps[index];
-            const statusElement = document.getElementById(`tutorial-status-${index}`);
-            const stepElement = document.getElementById(`tutorial-step-${index}`);
-            const spinner = document.getElementById(`spinner-${index}`);
-            const btnText = document.getElementById(`btn-text-${index}`);
-            
-            statusElement.textContent = 'running';
-            statusElement.className = 'tutorial-step-status running';
-            spinner.style.display = 'inline-block';
-            btnText.textContent = 'Running...';
-            
-            try {
-                const response = await callAzureFunction(step.command);
-                
-                step.status = 'completed';
-                statusElement.textContent = 'completed';
-                statusElement.className = 'tutorial-step-status completed';
-                stepElement.classList.add('completed');
-                
-                showToast(`Step ${index + 1} completed!`, 'success');
-                
-                // Show response in a modal or below the step
-                const responseDiv = document.createElement('div');
-                responseDiv.className = 'response-display';
-                responseDiv.style.marginTop = '16px';
-                responseDiv.textContent = response.assistant_response || JSON.stringify(response, null, 2);
-                stepElement.appendChild(responseDiv);
-                
-            } catch (error) {
-                step.status = 'failed';
-                statusElement.textContent = 'failed';
-                statusElement.className = 'tutorial-step-status failed';
-                
-                showToast(`Step ${index + 1} failed: ${error.message}`, 'error');
-            } finally {
-                spinner.style.display = 'none';
-                btnText.textContent = 'Run Step';
-            }
-        }
-
         // Display Query Results
         function displayQueryResults(result) {
             const resultsDiv = document.getElementById('queryResults');
             
             if (result.assistant_response) {
-                // Try to extract data from the response
                 try {
-                    // Look for JSON in the response
                     const jsonMatch = result.assistant_response.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
                     if (jsonMatch) {
                         const data = JSON.parse(jsonMatch[0]);
                         
-                        // If it's an array of objects, create a table
                         if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
                             const headers = Object.keys(data[0]);
                             
@@ -1836,7 +2434,6 @@
                     // Not JSON, display as text
                 }
                 
-                // Display as formatted text
                 resultsDiv.innerHTML = `<div class="response-display">${result.assistant_response}</div>`;
             } else {
                 resultsDiv.innerHTML = `<div class="response-display">${JSON.stringify(result, null, 2)}</div>`;
@@ -1870,6 +2467,7 @@
             
             document.getElementById('pageTitle').textContent = titles[page] || page;
             appState.currentPage = page;
+            autoSave();
         }
 
         // Settings
@@ -1890,7 +2488,8 @@
             
             document.getElementById('userDisplay').textContent = guid.substring(0, 8) + '...';
             
-            // Test connection
+            autoSave();
+            
             await testConnection();
         }
 
@@ -1902,12 +2501,14 @@
                     appState.isConnected = true;
                     document.getElementById('connectionStatus').textContent = 'Connected';
                     document.getElementById('connectionDot').classList.add('connected');
+                    autoSave();
                     showToast('Connected successfully!', 'success');
                 }
             } catch (error) {
                 appState.isConnected = false;
                 document.getElementById('connectionStatus').textContent = 'Disconnected';
                 document.getElementById('connectionDot').classList.remove('connected');
+                autoSave();
                 showToast(`Connection failed: ${error.message}`, 'error');
             }
         }
@@ -1916,14 +2517,12 @@
             const url = localStorage.getItem('azureFunctionUrl');
             const guid = localStorage.getItem('userGuid');
             
-            // Set default URL if none stored
-            const defaultUrl = 'https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/data_connector_function';
+            const defaultUrl = 'https://effective-bassoon-wvrjj9qrxvcg6vr-7071.app.github.dev/api/businessinsightbot_function';
             
             if (url) {
                 document.getElementById('azureFunctionUrl').value = url;
                 appState.azureFunctionUrl = url;
             } else {
-                // Use default URL
                 document.getElementById('azureFunctionUrl').value = defaultUrl;
                 appState.azureFunctionUrl = defaultUrl;
             }
@@ -1934,7 +2533,6 @@
                 document.getElementById('userDisplay').textContent = guid.substring(0, 8) + '...';
             }
             
-            // Auto-connect with default or stored settings
             if (appState.azureFunctionUrl && appState.userGuid) {
                 testConnection();
             }
@@ -1955,7 +2553,7 @@
 
         function updateMetrics() {
             appState.metrics.totalRequests++;
-            appState.metrics.dataProcessed += Math.random() * 1024 * 500; // Simulate data
+            appState.metrics.dataProcessed += Math.random() * 1024 * 500;
             updateDashboard();
         }
 
@@ -2001,6 +2599,7 @@
 
         function clearQuery() {
             document.getElementById('sqlQueryEditor').value = '';
+            autoSave();
         }
 
         function copyToClipboard(text) {
@@ -2045,6 +2644,12 @@
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && event.key === 'Enter' && appState.currentPage === 'query') {
                 executeSQLQuery();
+            }
+            
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                autoSave();
+                showToast('Progress saved', 'success');
             }
             
             if (event.key === 'Escape') {

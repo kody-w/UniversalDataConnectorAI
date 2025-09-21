@@ -121,7 +121,7 @@ open index.html
 3. Access via the provided Azure URL
 
 ### Access Points
-- **Local API**: http://localhost:7071/api/data_connector_function
+- **Local API**: http://localhost:7071/api/businessinsightbot_function
 - **Web Interface**: Open `index.html` in your browser
 - **Azure Function**: Uses your deployed Azure URL
 
@@ -129,7 +129,7 @@ open index.html
 
 ### API Data Fetching
 ```bash
-curl -X POST http://localhost:7071/api/data_connector_function \
+curl -X POST http://localhost:7071/api/businessinsightbot_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Use APIConnector to fetch data from https://jsonplaceholder.typicode.com/users",
@@ -139,7 +139,7 @@ curl -X POST http://localhost:7071/api/data_connector_function \
 
 ### Natural Language Queries
 ```bash
-curl -X POST http://localhost:7071/api/data_connector_function \
+curl -X POST http://localhost:7071/api/businessinsightbot_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Show me all users with .biz email addresses from the cached data",
@@ -149,7 +149,7 @@ curl -X POST http://localhost:7071/api/data_connector_function \
 
 ### Database Operations
 ```bash
-curl -X POST http://localhost:7071/api/data_connector_function \
+curl -X POST http://localhost:7071/api/businessinsightbot_function \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "Use SQLConnector to create a users table and insert the cached API data",
