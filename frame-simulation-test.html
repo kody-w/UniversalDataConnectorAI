@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frame Simulation - Mixed Reality Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        #worldCanvas {
+            width: 100%;
+            height: 400px;
+            background: #f0f8ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entity {
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .entity.animal {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            width: 30px;
+            height: 30px;
+        }
+
+        .entity.plant {
+            background: linear-gradient(135deg, #51cf66, #37b24d);
+            width: 25px;
+            height: 25px;
+        }
+
+        .entity.weather {
+            background: linear-gradient(135deg, #4dabf7, #339af0);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        .entity-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f6ad55;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+
+        .log-entry.deterministic {
+            border-left-color: #48bb78;
+        }
+
+        .log-entry.ai-driven {
+            border-left-color: #f6ad55;
+        }
+
+        .log-entry.interaction {
+            border-left-color: #fc8181;
+        }
+
+        .ai-prompt-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .ai-prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .frame-info {
+            background: #edf2f7;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .frame-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-icon {
+            font-size: 1.5rem;
+        }
+
+        .entity-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .entity-item {
+            background: #f7fafc;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .entity-item:hover {
+            background: #e2e8f0;
+        }
+
+        .entity-status {
+            display: flex;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .status-indicator {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-good {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-warning {
+            background: #fed7aa;
+            color: #7c2d12;
+        }
+
+        .status-danger {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .entity.active {
+            animation: pulse 1s infinite;
+        }
+
+        .prediction-panel {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .prediction-item {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Frame Simulation Engine</h1>
+            <p>Mixed Deterministic & AI-Driven World Simulation</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Visualization Panel -->
+            <div class="panel">
+                <h2>🎨 World Visualization</h2>
+                
+                <div class="frame-info">
+                    <div>
+                        <span class="frame-number">Frame #<span id="frameNumber">0</span></span>
+                    </div>
+                    <div class="time-display">
+                        <span class="time-icon" id="timeIcon">☀️</span>
+                        <span id="timeOfDay">12:00</span>
+                        <span id="temperature">20°C</span>
+                    </div>
+                </div>
+
+                <div id="worldCanvas"></div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="createWorld()">🌍 Create World</button>
+                    <button class="btn btn-secondary" onclick="advanceFrame()">▶️ Advance</button>
+                    <button class="btn btn-secondary" onclick="advanceMultiple()">⏩ Advance 5</button>
+                    <button class="btn btn-warning" onclick="rewindFrame()">⏪ Rewind</button>
+                    <button class="btn btn-danger" onclick="predictFuture()">🔮 Predict</button>
+                </div>
+
+                <div class="ai-prompt-input-container">
+                    <input type="text" class="ai-prompt-input" id="aiPrompt" 
+                           placeholder="Enter AI prompt to influence behavior (e.g., 'make animals more aggressive', 'increase cooperation')">
+                </div>
+            </div>
+
+            <!-- Stats & Controls Panel -->
+            <div class="panel">
+                <h2>📊 World Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalEntities">0</div>
+                        <div class="stat-label">Entities</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalEnergy">0</div>
+                        <div class="stat-label">Total Energy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stability">0%</div>
+                        <div class="stat-label">Stability</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="entropy">0.0</div>
+                        <div class="stat-label">Entropy</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px;">🐾 Entity List</h3>
+                <div class="entity-list" id="entityList"></div>
+
+                <h3 style="margin-top: 20px;">📜 Event History</h3>
+                <div class="history-log" id="historyLog"></div>
+            </div>
+        </div>
+
+        <!-- Additional Panels -->
+        <div class="main-grid" style="margin-top: 20px;">
+            <!-- Predictions Panel -->
+            <div class="panel">
+                <h2>🔮 Predictions & Analysis</h2>
+                <div class="prediction-panel" id="predictionPanel">
+                    <p>Click "Predict" to see future frame predictions...</p>
+                </div>
+            </div>
+
+            <!-- Interactions Panel -->
+            <div class="panel">
+                <h2>🤝 Entity Interactions</h2>
+                <div id="interactionLog" class="history-log"></div>
+                
+                <div style="margin-top: 15px;">
+                    <h4>Force Interaction:</h4>
+                    <div class="controls">
+                        <select id="sourceEntity" class="ai-prompt-input" style="width: 45%; display: inline-block;">
+                            <option>Select Source</option>
+                        </select>
+                        <select id="targetEntity" class="ai-prompt-input" style="width: 45%; display: inline-block;">
+                            <option>Select Target</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="forceInteraction()">Interact</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFrame = null;
+        let worldCreated = false;
+        let frameHistory = [];
+        let selectedEntity = null;
+
+        // API endpoint configuration
+        const API_ENDPOINT = '/api/businessinsightbot_function';
+        const userGuid = localStorage.getItem('userGuid') || generateGuid();
+        localStorage.setItem('userGuid', userGuid);
+
+        function generateGuid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        async function callFrameSimulation(action, params = {}) {
+            const prompt = `Using the FrameSimulation agent, ${action}: ${JSON.stringify(params)}`;
+            
+            const payload = {
+                user_input: prompt,
+                user_guid: userGuid,
+                conversation_history: []
+            };
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Parse the assistant response to extract frame data
+                if (data.assistant_response) {
+                    try {
+                        // Extract JSON from the response
+                        const jsonMatch = data.assistant_response.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse frame response:', e);
+                    }
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                return null;
+            }
+        }
+
+        async function createWorld() {
+            const result = await callFrameSimulation('create_world', {
+                action: 'create_world',
+                world_config: {
+                    type: 'ecosystem'
+                }
+            });
+            
+            if (result && result.success) {
+                worldCreated = true;
+                currentFrame = result.initial_state;
+                frameHistory = [];
+                
+                updateDisplay();
+                addLogEntry('World created: Ecosystem simulation initialized', 'deterministic');
+                
+                // Load the full frame data
+                await queryState();
+            } else {
+                alert('Failed to create world');
+            }
+        }
+
+        async function advanceFrame() {
+            if (!worldCreated) {
+                alert('Please create a world first');
+                return;
+            }
+
+            const aiPrompt = document.getElementById('aiPrompt').value;
+            
+            const result = await callFrameSimulation('advance_frame', {
+                action: 'advance_frame',
+                steps: 1,
+                ai_prompt: aiPrompt
+            });
+            
+            if (result && result.success) {
+                frameHistory.push(currentFrame);
+                currentFrame = result.current_state;
+                
+                updateDisplay();
+                
+                // Log changes
+                if (result.results && result.results[0]) {
+                    const frameResult = result.results[0];
+                    addLogEntry(`Frame ${frameResult.frame}: ${frameResult.changes} changes, ${frameResult.interactions} interactions`, 'deterministic');
+                }
+                
+                if (aiPrompt) {
+                    addLogEntry(`AI Influence: "${aiPrompt}"`, 'ai-driven');
+                }
+            }
+        }
+
+        async function advanceMultiple() {
+            if (!worldCreated) {
+                alert('Please create a world first');
+                return;
+            }
+
+            const aiPrompt = document.getElementById('aiPrompt').value;
+            
+            const result = await callFrameSimulation('advance_frame', {
+                action: 'advance_frame',
+                steps: 5,
+                ai_prompt: aiPrompt
+            });
+            
+            if (result && result.success) {
+                currentFrame = result.current_state;
+                updateDisplay();
+                
+                addLogEntry(`Advanced 5 frames to frame ${result.current_frame}`, 'deterministic');
+                
+                // Log summary of changes
+                if (result.results) {
+                    let totalChanges = 0;
+                    let totalInteractions = 0;
+                    result.results.forEach(r => {
+                        totalChanges += r.changes;
+                        totalInteractions += r.interactions;
+                    });
+                    addLogEntry(`Total: ${totalChanges} changes, ${totalInteractions} interactions`, 'interaction');
+                }
+            }
+        }
+
+        async function rewindFrame() {
+            if (!worldCreated || frameHistory.length === 0) {
+                alert('No history to rewind');
+                return;
+            }
+
+            const result = await callFrameSimulation('rewind_frame', {
+                action: 'rewind_frame',
+                steps: 1
+            });
+            
+            if (result && result.success) {
+                currentFrame = result.current_state;
+                updateDisplay();
+                
+                addLogEntry(`Rewound to frame ${result.current_frame}`, 'deterministic');
+            }
+        }
+
+        async function predictFuture() {
+            if (!worldCreated) {
+                alert('Please create a world first');
+                return;
+            }
+
+            const aiPrompt = document.getElementById('aiPrompt').value;
+            
+            const result = await callFrameSimulation('predict_future', {
+                action: 'predict_future',
+                prediction_depth: 5,
+                ai_prompt: aiPrompt
+            });
+            
+            if (result && result.success && result.predictions) {
+                displayPredictions(result.predictions);
+                addLogEntry(`Generated ${result.predictions.length} frame predictions`, 'ai-driven');
+            }
+        }
+
+        async function queryState() {
+            if (!worldCreated) return;
+            
+            const result = await callFrameSimulation('query_state', {
+                action: 'query_state',
+                query: 'environment entities global'
+            });
+            
+            if (result && result.success && result.results) {
+                // Update entity list and dropdowns
+                if (result.results.environment) {
+                    updateEntitySelectors();
+                }
+            }
+        }
+
+        function updateDisplay() {
+            if (!currentFrame) return;
+            
+            // Update frame number
+            document.getElementById('frameNumber').textContent = currentFrame.frame_number || '0';
+            
+            // Update statistics
+            document.getElementById('totalEntities').textContent = currentFrame.entity_count || '0';
+            
+            if (currentFrame.global_metrics) {
+                document.getElementById('totalEnergy').textContent = 
+                    Math.round(currentFrame.global_metrics.total_energy || 0);
+                document.getElementById('stability').textContent = 
+                    Math.round((currentFrame.global_metrics.stability || 0) * 100) + '%';
+                document.getElementById('entropy').textContent = 
+                    (currentFrame.global_metrics.entropy || 0).toFixed(2);
+            }
+            
+            // Update environment
+            if (currentFrame.environment_snapshot) {
+                const time = currentFrame.environment_snapshot.time_of_day || 12;
+                const hours = Math.floor(time);
+                const minutes = Math.round((time - hours) * 60);
+                document.getElementById('timeOfDay').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                
+                // Update time icon based on time of day
+                let icon = '☀️';
+                if (time < 6 || time >= 20) icon = '🌙';
+                else if (time < 12) icon = '🌅';
+                else if (time >= 17) icon = '🌆';
+                document.getElementById('timeIcon').textContent = icon;
+                
+                const temp = currentFrame.environment_snapshot.temperature || 20;
+                document.getElementById('temperature').textContent = `${Math.round(temp)}°C`;
+            }
+            
+            // Visualize entities (simplified)
+            visualizeWorld();
+            
+            // Update entity list
+            updateEntityList();
+        }
+
+        function visualizeWorld() {
+            const canvas = document.getElementById('worldCanvas');
+            canvas.innerHTML = ''; // Clear canvas
+            
+            if (!currentFrame || !currentFrame.entity_types) return;
+            
+            // Create simple visual representations
+            for (let i = 0; i < currentFrame.entity_count; i++) {
+                const entity = document.createElement('div');
+                entity.className = 'entity';
+                
+                // Determine entity type for styling
+                const types = currentFrame.entity_types;
+                if (types.includes('animal') && Math.random() < 0.3) {
+                    entity.classList.add('animal');
+                    entity.innerHTML = '🐾';
+                } else if (types.includes('plant') && Math.random() < 0.4) {
+                    entity.classList.add('plant');
+                    entity.innerHTML = '🌱';
+                } else if (types.includes('environmental') && Math.random() < 0.1) {
+                    entity.classList.add('weather');
+                    entity.innerHTML = '☁️';
+                } else {
+                    continue;
+                }
+                
+                // Random position
+                entity.style.left = Math.random() * 90 + '%';
+                entity.style.top = Math.random() * 90 + '%';
+                
+                // Add tooltip on hover
+                entity.title = `Entity ${i}`;
+                entity.onclick = () => selectEntity(i);
+                
+                canvas.appendChild(entity);
+            }
+        }
+
+        function updateEntityList() {
+            const list = document.getElementById('entityList');
+            list.innerHTML = '';
+            
+            if (!currentFrame || !currentFrame.entity_types) return;
+            
+            // Create entity items (simplified representation)
+            const types = currentFrame.entity_types;
+            types.forEach(type => {
+                const item = document.createElement('div');
+                item.className = 'entity-item';
+                
+                let icon = '❓';
+                if (type === 'animal') icon = '🦊';
+                else if (type === 'plant') icon = '🌿';
+                else if (type === 'environmental') icon = '🌍';
+                else if (type === 'person') icon = '👤';
+                else if (type === 'infrastructure') icon = '🏗️';
+                
+                item.innerHTML = `
+                    <span>${icon} ${type}</span>
+                    <div class="entity-status">
+                        <span class="status-indicator status-good">Active</span>
+                    </div>
+                `;
+                
+                list.appendChild(item);
+            });
+        }
+
+        function updateEntitySelectors() {
+            const sourceSelect = document.getElementById('sourceEntity');
+            const targetSelect = document.getElementById('targetEntity');
+            
+            // Clear options
+            sourceSelect.innerHTML = '<option>Select Source</option>';
+            targetSelect.innerHTML = '<option>Select Target</option>';
+            
+            // Add entity options (simplified)
+            if (currentFrame && currentFrame.entity_types) {
+                currentFrame.entity_types.forEach((type, index) => {
+                    const option1 = document.createElement('option');
+                    option1.value = `${type}_0`;
+                    option1.textContent = `${type}_0`;
+                    sourceSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = `${type}_0`;
+                    option2.textContent = `${type}_0`;
+                    targetSelect.appendChild(option2);
+                });
+            }
+        }
+
+        async function forceInteraction() {
+            const source = document.getElementById('sourceEntity').value;
+            const target = document.getElementById('targetEntity').value;
+            
+            if (source === 'Select Source' || target === 'Select Target') {
+                alert('Please select both source and target entities');
+                return;
+            }
+            
+            const result = await callFrameSimulation('interact', {
+                action: 'interact',
+                interaction: {
+                    source_entity: source,
+                    target_entity: target,
+                    action_type: 'custom_interaction'
+                }
+            });
+            
+            if (result && result.success) {
+                addInteractionLog(`${source} interacted with ${target}`);
+                addLogEntry(`Forced interaction: ${source} → ${target}`, 'interaction');
+            }
+        }
+
+        function addLogEntry(message, type = 'deterministic') {
+            const log = document.getElementById('historyLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function addInteractionLog(message) {
+            const log = document.getElementById('interactionLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry interaction';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 20 entries
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function displayPredictions(predictions) {
+            const panel = document.getElementById('predictionPanel');
+            panel.innerHTML = '<h4>Future Frame Predictions:</h4>';
+            
+            predictions.forEach(pred => {
+                const item = document.createElement('div');
+                item.className = 'prediction-item';
+                
+                const confidence = Math.round(pred.confidence * 100);
+                const confidenceClass = confidence > 70 ? 'status-good' : 
+                                       confidence > 40 ? 'status-warning' : 'status-danger';
+                
+                item.innerHTML = `
+                    <strong>Frame ${pred.frame}:</strong>
+                    <span class="status-indicator ${confidenceClass}">${confidence}% confident</span>
+                    <div style="margin-top: 5px; font-size: 0.85rem;">
+                        • Deterministic changes: ${pred.predicted_changes.deterministic}<br>
+                        • AI-driven changes: ${pred.predicted_changes.ai_driven}<br>
+                        • Expected interactions: ${pred.predicted_changes.interactions}
+                    </div>
+                `;
+                
+                panel.appendChild(item);
+            });
+        }
+
+        function selectEntity(index) {
+            selectedEntity = index;
+            
+            // Update visual selection
+            document.querySelectorAll('.entity').forEach((e, i) => {
+                if (i === index) {
+                    e.classList.add('active');
+                } else {
+                    e.classList.remove('active');
+                }
+            });
+            
+            addLogEntry(`Selected entity ${index}`, 'interaction');
+        }
+
+        // Initialize
+        addLogEntry('Frame Simulation Engine initialized', 'deterministic');
+        addLogEntry('Ready to create world...', 'ai-driven');
+    </script>
+</body>
+</html>

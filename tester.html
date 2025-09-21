@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Data Connector - Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 .icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .config-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .config-group label {
+            color: #333;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .config-group input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .config-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .test-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .test-list h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .test-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .test-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .test-item.running {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .test-item.passed {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .test-item.failed {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .test-info {
+            flex: 1;
+        }
+
+        .test-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .test-description {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .status-icon.pending {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .status-icon.running {
+            background: #ff9800;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-icon.passed {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-icon.failed {
+            background: #f44336;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .run-single-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .run-single-btn:hover {
+            background: #5568d3;
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-entry.info {
+            border-left-color: #2196f3;
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .log-entry.success {
+            border-left-color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .log-entry.error {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .log-entry.warning {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .log-timestamp {
+            color: #666;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .log-message {
+            color: #d4d4d4;
+        }
+
+        .log-entry.success .log-message {
+            color: #4caf50;
+        }
+
+        .log-entry.error .log-message {
+            color: #f44336;
+        }
+
+        .log-entry.warning .log-message {
+            color: #ff9800;
+        }
+
+        .summary-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-card.success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .summary-card.failure {
+            background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+        }
+
+        .summary-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .control-panel {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <div class="icon">🔌</div>
+                Universal Data Connector Test Suite
+            </h1>
+            <div class="subtitle">Comprehensive end-to-end testing for Azure Function data connectors</div>
+            
+            <div class="config-section">
+                <div class="config-group">
+                    <label for="endpoint">Endpoint URL:</label>
+                    <input type="text" id="endpoint" value="http://localhost:7071/api/businessinsightbot_function" />
+                </div>
+                <div class="config-group">
+                    <label for="userGuid">User GUID:</label>
+                    <input type="text" id="userGuid" readonly />
+                    <button class="btn btn-secondary" onclick="generateNewGuid()">
+                        <span>🔄</span> New GUID
+                    </button>
+                </div>
+                <div class="control-panel">
+                    <button class="btn btn-primary" onclick="runAllTests()" id="runAllBtn">
+                        <span>▶️</span> Run All Tests
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResults()">
+                        <span>🗑️</span> Clear Results
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportResults()">
+                        <span>📥</span> Export Results
+                    </button>
+                    <button class="btn btn-danger" onclick="stopTests()" id="stopBtn" style="display: none;">
+                        <span>⏹️</span> Stop Tests
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="test-list">
+                <h2>Test Cases</h2>
+                <div id="testList"></div>
+            </div>
+
+            <div class="results-panel">
+                <div class="results-header">
+                    <h2>Test Results</h2>
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" onclick="toggleLogView()">
+                            <span>📜</span> Toggle Log
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSummary()">
+                            <span>📊</span> Summary
+                        </button>
+                    </div>
+                </div>
+
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+
+                <div class="log-container" id="logContainer"></div>
+
+                <div class="summary-section" id="summarySection" style="display: none;">
+                    <h3>Test Summary</h3>
+                    <div class="summary-grid" id="summaryGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Test Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let testRunning = false;
+        let shouldStop = false;
+        let testResults = [];
+        let conversationHistory = [];
+
+        // Test definitions
+        const testCases = [
+            {
+                id: 'basic_connectivity',
+                name: 'Basic Connectivity',
+                description: 'Verify the function endpoint is responding',
+                run: testBasicConnectivity
+            },
+            {
+                id: 'guid_init',
+                name: 'GUID Initialization',
+                description: 'Test user-specific context initialization',
+                run: testGuidInitialization
+            },
+            {
+                id: 'memory_mgmt',
+                name: 'Memory Management',
+                description: 'Test storing and retrieving memories',
+                run: testMemoryManagement
+            },
+            {
+                id: 'schema_learning',
+                name: 'Schema Learning',
+                description: 'Test data schema analysis and learning',
+                run: testSchemaLearning
+            },
+            {
+                id: 'connector_registry',
+                name: 'Connector Registry',
+                description: 'Test connector registration and discovery',
+                run: testConnectorRegistry
+            },
+            {
+                id: 'format_conversion',
+                name: 'Format Conversion',
+                description: 'Test data format transformation capabilities',
+                run: testFormatConversion
+            },
+            {
+                id: 'fixed_width',
+                name: 'Fixed-Width Detection',
+                description: 'Test fixed-width format pattern recognition',
+                run: testFixedWidthDetection
+            },
+            {
+                id: 'email_drafting',
+                name: 'Email Drafting',
+                description: 'Test email composition functionality',
+                run: testEmailDrafting
+            },
+            {
+                id: 'learn_agent',
+                name: 'Learn New Agent',
+                description: 'Test dynamic agent creation capability',
+                run: testLearnNewAgent
+            },
+            {
+                id: 'complex_query',
+                name: 'Complex Data Query',
+                description: 'Test multi-source data connection scenarios',
+                run: testComplexDataQuery
+            },
+            {
+                id: 'error_handling',
+                name: 'Error Handling',
+                description: 'Test error recovery and graceful handling',
+                run: testErrorHandling
+            },
+            {
+                id: 'data_caching',
+                name: 'Data Caching',
+                description: 'Test caching mechanisms and retrieval',
+                run: testDataCaching
+            },
+            {
+                id: 'performance_metrics',
+                name: 'Performance Metrics',
+                description: 'Test metrics tracking and reporting',
+                run: testPerformanceMetrics
+            }
+        ];
+
+        // Initialize on page load
+        window.onload = function() {
+            generateNewGuid();
+            renderTestList();
+            log('info', 'Test suite initialized and ready');
+        };
+
+        // Utility Functions
+        function generateNewGuid() {
+            const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            document.getElementById('userGuid').value = guid;
+            return guid;
+        }
+
+        function getEndpoint() {
+            return document.getElementById('endpoint').value;
+        }
+
+        function getUserGuid() {
+            return document.getElementById('userGuid').value;
+        }
+
+        function log(type, message, details = null) {
+            const container = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            let html = `<span class="log-timestamp">[${timestamp}]</span>`;
+            html += `<span class="log-message">${escapeHtml(message)}`;
+            
+            if (details) {
+                html += `<div class="code-block">${escapeHtml(JSON.stringify(details, null, 2))}</div>`;
+            }
+            
+            html += `</span>`;
+            entry.innerHTML = html;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // API Functions
+        async function makeRequest(userInput, history = null, guid = null) {
+            const endpoint = getEndpoint();
+            const userGuid = guid || getUserGuid();
+            
+            const payload = {
+                user_input: userInput,
+                conversation_history: history || conversationHistory || [],
+                user_guid: userGuid
+            };
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Update conversation history
+                if (data.assistant_response) {
+                    conversationHistory.push({ role: 'user', content: userInput });
+                    conversationHistory.push({ role: 'assistant', content: data.assistant_response });
+                }
+                
+                return data;
+            } catch (error) {
+                log('error', `Request failed: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Test Case Functions
+        async function testBasicConnectivity() {
+            log('info', 'Testing basic connectivity...');
+            
+            try {
+                const response = await makeRequest('Hello, can you hear me?');
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Basic connectivity test passed');
+                    log('info', `Response: ${response.assistant_response.substring(0, 100)}...`);
+                    return { passed: true, message: 'Endpoint responding correctly' };
+                } else {
+                    log('error', '✗ No assistant_response in response');
+                    return { passed: false, message: 'Invalid response structure' };
+                }
+            } catch (error) {
+                log('error', `✗ Connectivity test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testGuidInitialization() {
+            log('info', 'Testing GUID context initialization...');
+            const guid = getUserGuid();
+            
+            try {
+                const response = await makeRequest(guid);
+                
+                if (response.assistant_response && response.user_guid === guid) {
+                    log('success', `✓ GUID initialization successful: ${guid}`);
+                    return { passed: true, message: 'Context initialized for user' };
+                } else {
+                    log('error', '✗ GUID initialization failed');
+                    return { passed: false, message: 'Context not properly initialized' };
+                }
+            } catch (error) {
+                log('error', `✗ GUID test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testMemoryManagement() {
+            log('info', 'Testing memory management...');
+            
+            try {
+                // Store memory
+                log('info', 'Storing memory...');
+                let response = await makeRequest(
+                    'Please remember that my favorite database is PostgreSQL and I prefer Python for data processing. Also note that our Q4 revenue target is $2.5M.'
+                );
+                
+                if (!response.assistant_response) {
+                    return { passed: false, message: 'Failed to store memory' };
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+                
+                // Recall memory
+                log('info', 'Recalling memory...');
+                response = await makeRequest('What do you remember about my preferences and targets?');
+                
+                const responseText = response.assistant_response?.toLowerCase() || '';
+                const hasExpectedContent = 
+                    responseText.includes('postgresql') ||
+                    responseText.includes('python') ||
+                    responseText.includes('2.5') ||
+                    responseText.includes('revenue');
+                
+                if (hasExpectedContent) {
+                    log('success', '✓ Memory recall successful');
+                    log('info', `Recalled: ${response.assistant_response.substring(0, 200)}...`);
+                    return { passed: true, message: 'Memory storage and retrieval working' };
+                } else {
+                    log('error', '✗ Memory recall failed - expected content not found');
+                    return { passed: false, message: 'Memory not properly recalled' };
+                }
+            } catch (error) {
+                log('error', `✗ Memory test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testSchemaLearning() {
+            log('info', 'Testing schema learning...');
+            
+            const sampleData = {
+                customers: [
+                    { id: 1, name: 'Acme Corp', revenue: 1500000, created_at: '2024-01-15' },
+                    { id: 2, name: 'TechStart', revenue: 750000, created_at: '2024-02-20' },
+                    { id: 3, name: 'DataCo', revenue: 2100000, created_at: '2024-03-10' }
+                ]
+            };
+            
+            try {
+                const response = await makeRequest(
+                    `Analyze this JSON schema and learn its structure: ${JSON.stringify(sampleData)}`
+                );
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Schema analysis completed');
+                    log('info', `Analysis: ${response.assistant_response.substring(0, 200)}...`);
+                    return { passed: true, message: 'Schema learning successful' };
+                } else {
+                    log('error', '✗ Schema analysis failed');
+                    return { passed: false, message: 'No analysis provided' };
+                }
+            } catch (error) {
+                log('error', `✗ Schema test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testConnectorRegistry() {
+            log('info', 'Testing connector registry...');
+            
+            try {
+                // Register connector
+                log('info', 'Registering SQL connector...');
+                let response = await makeRequest(
+                    'Register a new SQL database connector for our PostgreSQL production database'
+                );
+                
+                if (!response.assistant_response) {
+                    return { passed: false, message: 'Failed to register connector' };
+                }
+                
+                // Find connectors
+                log('info', 'Finding SQL connectors...');
+                response = await makeRequest('Show me all available SQL connectors');
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Connector registry operations successful');
+                    return { passed: true, message: 'Connector registration and search working' };
+                } else {
+                    log('error', '✗ Connector search failed');
+                    return { passed: false, message: 'Could not search connectors' };
+                }
+            } catch (error) {
+                log('error', `✗ Registry test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testFormatConversion() {
+            log('info', 'Testing format conversion...');
+            
+            const csvData = `name,department,salary,start_date
+John Smith,Engineering,95000,2023-01-15
+Jane Doe,Marketing,85000,2023-03-20
+Bob Johnson,Sales,78000,2023-02-10`;
+            
+            try {
+                const response = await makeRequest(
+                    `Convert this CSV data to JSON format:\n${csvData}`
+                );
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Format conversion successful');
+                    log('info', `Conversion: ${response.assistant_response.substring(0, 200)}...`);
+                    return { passed: true, message: 'CSV to JSON conversion working' };
+                } else {
+                    log('error', '✗ Format conversion failed');
+                    return { passed: false, message: 'No conversion result' };
+                }
+            } catch (error) {
+                log('error', `✗ Conversion test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testFixedWidthDetection() {
+            log('info', 'Testing fixed-width format detection...');
+            
+            const fixedWidthData = `12345SMITH     JOHN      20240115150000USD
+67890DOE       JANE      20240320085000EUR
+11111JOHNSON   ROBERT    20240210078000USD`;
+            
+            try {
+                const response = await makeRequest(
+                    `Analyze this data format and identify the structure:\n${fixedWidthData}`
+                );
+                
+                const responseText = response.assistant_response?.toLowerCase() || '';
+                const hasFixedWidth = 
+                    responseText.includes('fixed') ||
+                    responseText.includes('width') ||
+                    responseText.includes('position');
+                
+                if (hasFixedWidth) {
+                    log('success', '✓ Fixed-width format detected correctly');
+                    log('info', `Analysis: ${response.assistant_response.substring(0, 300)}...`);
+                    return { passed: true, message: 'Fixed-width detection working' };
+                } else {
+                    log('warning', '⚠️ Fixed-width format not explicitly detected');
+                    return { passed: false, message: 'Format not correctly identified' };
+                }
+            } catch (error) {
+                log('error', `✗ Fixed-width test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testEmailDrafting() {
+            log('info', 'Testing email drafting...');
+            
+            try {
+                const response = await makeRequest(
+                    'Draft an email to the team about our successful data migration. Subject: Data Migration Complete. ' +
+                    'Body should mention that all customer records have been successfully migrated to the new system.'
+                );
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Email draft created');
+                    log('info', `Draft: ${response.assistant_response.substring(0, 200)}...`);
+                    return { passed: true, message: 'Email drafting functional' };
+                } else {
+                    log('error', '✗ Email drafting failed');
+                    return { passed: false, message: 'No draft created' };
+                }
+            } catch (error) {
+                log('error', `✗ Email test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testLearnNewAgent() {
+            log('info', 'Testing new agent creation...');
+            
+            try {
+                const response = await makeRequest(
+                    'Create a new agent called DataAnalytics that can calculate basic statistics like mean, median, and mode from a list of numbers'
+                );
+                
+                const responseText = response.assistant_response?.toLowerCase() || '';
+                const hasCreation = 
+                    responseText.includes('created') ||
+                    responseText.includes('agent');
+                
+                if (hasCreation) {
+                    log('success', '✓ New agent creation successful');
+                    log('info', `Result: ${response.assistant_response.substring(0, 200)}...`);
+                    return { passed: true, message: 'Agent creation working' };
+                } else {
+                    log('warning', '⚠️ Agent creation unclear');
+                    return { passed: false, message: 'Agent creation status uncertain' };
+                }
+            } catch (error) {
+                log('error', `✗ Agent creation test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testComplexDataQuery() {
+            log('info', 'Testing complex data query...');
+            
+            try {
+                const localHistory = [];
+                
+                // Set context
+                log('info', 'Setting data context...');
+                let response = await makeRequest(
+                    'I have customer data in PostgreSQL, transactions in MongoDB, and analytics in CSV files. ' +
+                    'I need to connect all three sources for quarterly reporting.',
+                    localHistory
+                );
+                
+                if (response.assistant_response) {
+                    localHistory.push({ role: 'user', content: 'Multi-source data context' });
+                    localHistory.push({ role: 'assistant', content: response.assistant_response });
+                }
+                
+                // Follow up query
+                log('info', 'Executing optimization query...');
+                response = await makeRequest(
+                    'How would you optimize the query performance when joining data from these three different sources?',
+                    localHistory
+                );
+                
+                const responseText = response.assistant_response?.toLowerCase() || '';
+                const hasOptimization = 
+                    responseText.includes('cache') ||
+                    responseText.includes('performance') ||
+                    responseText.includes('optimize') ||
+                    responseText.includes('index');
+                
+                if (hasOptimization) {
+                    log('success', '✓ Complex query optimization advice provided');
+                    log('info', `Advice: ${response.assistant_response.substring(0, 300)}...`);
+                    return { passed: true, message: 'Complex query handling successful' };
+                } else {
+                    log('warning', '⚠️ Optimization advice not clear');
+                    return { passed: false, message: 'Optimization advice lacking' };
+                }
+            } catch (error) {
+                log('error', `✗ Complex query test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testErrorHandling() {
+            log('info', 'Testing error handling...');
+            
+            try {
+                // Test malformed JSON
+                log('info', 'Testing malformed JSON...');
+                let response = await makeRequest('Parse this JSON: {invalid json: [broken');
+                
+                if (!response.assistant_response) {
+                    return { passed: false, message: 'No response for malformed input' };
+                }
+                
+                // Test special characters
+                log('info', 'Testing special characters...');
+                response = await makeRequest('Store this data: ' + '🔥'.repeat(100) + ' NULL \x00 \n\r\t');
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Error handling successful');
+                    return { passed: true, message: 'Graceful error handling confirmed' };
+                } else {
+                    log('error', '✗ Error handling failed');
+                    return { passed: false, message: 'Failed to handle edge cases' };
+                }
+            } catch (error) {
+                log('error', `✗ Error handling test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testDataCaching() {
+            log('info', 'Testing data caching...');
+            
+            try {
+                // Cache data
+                log('info', 'Caching query results...');
+                let response = await makeRequest(
+                    'Cache the results of our customer query for 5 minutes. The query returned 1500 records.'
+                );
+                
+                if (!response.assistant_response) {
+                    return { passed: false, message: 'Failed to cache data' };
+                }
+                
+                // Retrieve from cache
+                log('info', 'Retrieving from cache...');
+                response = await makeRequest('Check if we have cached results for the customer query');
+                
+                if (response.assistant_response) {
+                    log('success', '✓ Data caching functional');
+                    return { passed: true, message: 'Cache storage and retrieval working' };
+                } else {
+                    log('error', '✗ Cache retrieval failed');
+                    return { passed: false, message: 'Could not retrieve cached data' };
+                }
+            } catch (error) {
+                log('error', `✗ Caching test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        async function testPerformanceMetrics() {
+            log('info', 'Testing performance metrics...');
+            
+            try {
+                const response = await makeRequest(
+                    'Show me the performance metrics for our data connections and cache hit rates'
+                );
+                
+                if (response.assistant_response) {
+                    if (response.connected_sources !== undefined) {
+                        log('info', `Connected sources: ${response.connected_sources}`);
+                        log('info', `Learned patterns: ${response.learned_patterns}`);
+                        log('info', `Cached queries: ${response.cached_queries}`);
+                    }
+                    
+                    log('success', '✓ Performance metrics retrieved');
+                    return { passed: true, message: 'Metrics tracking functional' };
+                } else {
+                    log('error', '✗ Performance metrics retrieval failed');
+                    return { passed: false, message: 'No metrics available' };
+                }
+            } catch (error) {
+                log('error', `✗ Metrics test failed: ${error.message}`);
+                return { passed: false, message: error.message };
+            }
+        }
+
+        // UI Functions
+        function renderTestList() {
+            const container = document.getElementById('testList');
+            container.innerHTML = '';
+            
+            testCases.forEach(test => {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                testItem.id = `test-${test.id}`;
+                
+                testItem.innerHTML = `
+                    <div class="test-info">
+                        <div class="test-name">${test.name}</div>
+                        <div class="test-description">${test.description}</div>
+                    </div>
+                    <div class="test-status">
+                        <div class="status-icon pending" id="status-${test.id}">⏸</div>
+                        <button class="run-single-btn" onclick="runSingleTest('${test.id}')">Run</button>
+                    </div>
+                `;
+                
+                container.appendChild(testItem);
+            });
+        }
+
+        function updateTestStatus(testId, status, result = null) {
+            const testItem = document.getElementById(`test-${testId}`);
+            const statusIcon = document.getElementById(`status-${testId}`);
+            
+            testItem.className = `test-item ${status}`;
+            statusIcon.className = `status-icon ${status}`;
+            
+            switch (status) {
+                case 'running':
+                    statusIcon.innerHTML = '<span class="spinner"></span>';
+                    break;
+                case 'passed':
+                    statusIcon.innerHTML = '✓';
+                    break;
+                case 'failed':
+                    statusIcon.innerHTML = '✗';
+                    break;
+                default:
+                    statusIcon.innerHTML = '⏸';
+            }
+            
+            if (result) {
+                testResults.push({ testId, status, result });
+            }
+        }
+
+        function updateProgress(current, total) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            progressBar.style.display = 'block';
+            const percentage = Math.round((current / total) * 100);
+            progressFill.style.width = `${percentage}%`;
+            progressFill.textContent = `${percentage}%`;
+        }
+
+        async function runAllTests() {
+            if (testRunning) {
+                log('warning', 'Tests are already running');
+                return;
+            }
+            
+            testRunning = true;
+            shouldStop = false;
+            testResults = [];
+            conversationHistory = [];
+            
+            document.getElementById('runAllBtn').disabled = true;
+            document.getElementById('stopBtn').style.display = 'inline-flex';
+            
+            log('info', '===== Starting Test Suite =====');
+            log('info', `Endpoint: ${getEndpoint()}`);
+            log('info', `User GUID: ${getUserGuid()}`);
+            
+            for (let i = 0; i < testCases.length; i++) {
+                if (shouldStop) {
+                    log('warning', 'Test suite stopped by user');
+                    break;
+                }
+                
+                const test = testCases[i];
+                updateProgress(i, testCases.length);
+                
+                log('info', `\n--- Running: ${test.name} ---`);
+                updateTestStatus(test.id, 'running');
+                
+                try {
+                    const result = await test.run();
+                    const status = result.passed ? 'passed' : 'failed';
+                    updateTestStatus(test.id, status, result);
+                    
+                    if (result.passed) {
+                        log('success', `✓ ${test.name} PASSED`);
+                    } else {
+                        log('error', `✗ ${test.name} FAILED: ${result.message}`);
+                    }
+                } catch (error) {
+                    updateTestStatus(test.id, 'failed', { passed: false, message: error.message });
+                    log('error', `✗ ${test.name} ERROR: ${error.message}`);
+                }
+                
+                // Brief delay between tests
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            updateProgress(testCases.length, testCases.length);
+            showTestSummary();
+            
+            testRunning = false;
+            document.getElementById('runAllBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+        }
+
+        async function runSingleTest(testId) {
+            if (testRunning) {
+                log('warning', 'Cannot run single test while suite is running');
+                return;
+            }
+            
+            const test = testCases.find(t => t.id === testId);
+            if (!test) {
+                log('error', `Test ${testId} not found`);
+                return;
+            }
+            
+            log('info', `Running single test: ${test.name}`);
+            updateTestStatus(test.id, 'running');
+            
+            try {
+                const result = await test.run();
+                const status = result.passed ? 'passed' : 'failed';
+                updateTestStatus(test.id, status, result);
+                
+                if (result.passed) {
+                    log('success', `✓ ${test.name} PASSED`);
+                } else {
+                    log('error', `✗ ${test.name} FAILED: ${result.message}`);
+                }
+            } catch (error) {
+                updateTestStatus(test.id, 'failed', { passed: false, message: error.message });
+                log('error', `✗ ${test.name} ERROR: ${error.message}`);
+            }
+        }
+
+        function stopTests() {
+            shouldStop = true;
+            log('warning', 'Stopping test suite...');
+        }
+
+        function clearResults() {
+            document.getElementById('logContainer').innerHTML = '';
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('progressBar').style.display = 'none';
+            testResults = [];
+            conversationHistory = [];
+            renderTestList();
+            log('info', 'Results cleared');
+        }
+
+        function showTestSummary() {
+            const summarySection = document.getElementById('summarySection');
+            const summaryGrid = document.getElementById('summaryGrid');
+            
+            const passed = testResults.filter(r => r.status === 'passed').length;
+            const failed = testResults.filter(r => r.status === 'failed').length;
+            const total = testResults.length;
+            const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+            
+            summaryGrid.innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-value">${total}</div>
+                    <div class="summary-label">Total Tests</div>
+                </div>
+                <div class="summary-card success">
+                    <div class="summary-value">${passed}</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-card failure">
+                    <div class="summary-value">${failed}</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${passRate}%</div>
+                    <div class="summary-label">Pass Rate</div>
+                </div>
+            `;
+            
+            summarySection.style.display = 'block';
+            
+            log('info', '===== Test Summary =====');
+            log('info', `Total: ${total} | Passed: ${passed} | Failed: ${failed} | Pass Rate: ${passRate}%`);
+            
+            if (passed === total && total > 0) {
+                log('success', '✓ ALL TESTS PASSED!');
+            } else if (failed > 0) {
+                log('warning', `⚠️ ${failed} test(s) failed. Please review the logs.`);
+            }
+        }
+
+        function toggleLogView() {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.style.display = 
+                logContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showSummary() {
+            if (testResults.length === 0) {
+                log('warning', 'No test results available. Run tests first.');
+                return;
+            }
+            showTestSummary();
+        }
+
+        function exportResults() {
+            if (testResults.length === 0) {
+                log('warning', 'No results to export. Run tests first.');
+                return;
+            }
+            
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                endpoint: getEndpoint(),
+                userGuid: getUserGuid(),
+                results: testResults,
+                summary: {
+                    total: testResults.length,
+                    passed: testResults.filter(r => r.status === 'passed').length,
+                    failed: testResults.filter(r => r.status === 'failed').length,
+                    passRate: testResults.length > 0 ? 
+                        Math.round((testResults.filter(r => r.status === 'passed').length / testResults.length) * 100) : 0
+                },
+                logs: Array.from(document.querySelectorAll('.log-entry')).map(entry => ({
+                    type: entry.classList[1],
+                    timestamp: entry.querySelector('.log-timestamp')?.textContent,
+                    message: entry.querySelector('.log-message')?.textContent
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], 
+                { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `test-results-${new Date().toISOString().replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            log('success', 'Results exported successfully');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = content;
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('detailModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
