@@ -23,7 +23,7 @@
 - 🎯 **Optimization Hints** - Performance improvement suggestions
 
 ### Live Data Processing & Results
-![Query Results](docs/tutorial-screenshots/step7-query-database.png)
+![Query Results](https://github.com/user-attachments/assets/07fb2c9c-446d-4380-8b61-75acb3e9ecac)
 
 **Real-time Processing:**
 - 💬 **Natural Language Queries** - Ask questions in plain English
