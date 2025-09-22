@@ -31,7 +31,7 @@
 - 📋 **Formatted Output** - Clean, readable results
 - 🔍 **SQL Generation** - See the generated queries
 
-## 🎯 Core Capabilitiesctor AI - Professional Edition
+## 🎯 Core Capabilities
 
 ## 🌐 Intelligent Data Integration Platform
 
