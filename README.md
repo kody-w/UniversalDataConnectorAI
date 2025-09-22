@@ -5,8 +5,7 @@
 ## 📸 Platform Screenshots
 
 ### Professional Dashboard & Tutorial Interface
-![Tutorial Interface](https://github.com/user-attachments/assets/27b7cfac-ab67-4162-89c1-b2ed33b2eb6e
-)
+![Tutorial Interface](https://github.com/user-attachments/assets/27b7cfac-ab67-4162-89c1-b2ed33b2eb6e)
 
 **Modern Web Interface Features:**
 - 🌙 **Dark Theme Design** - Professional, easy-on-eyes interface
@@ -15,7 +14,7 @@
 - ⚡ **One-Click Actions** - Quick access to common operations
 
 ### AI-Powered Data Analysis
-![Schema Analysis](docs/tutorial-screenshots/step4-analyze-structure.png)
+![Schema Analysis](https://github.com/user-attachments/assets/43744bbe-2433-4746-b28e-4edd76d86758)
 
 **Intelligence Features:**
 - 🧠 **Automatic Schema Detection** - AI understands data structure instantly
