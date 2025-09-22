@@ -5,7 +5,8 @@
 ## 📸 Platform Screenshots
 
 ### Professional Dashboard & Tutorial Interface
-![Tutorial Interface](docs/tutorial-screenshots/step1-register-api.png)
+![Tutorial Interface](<img width="1911" height="948" alt="image" src="https://github.com/user-attachments/assets/27b7cfac-ab67-4162-89c1-b2ed33b2eb6e" />
+)
 
 **Modern Web Interface Features:**
 - 🌙 **Dark Theme Design** - Professional, easy-on-eyes interface
