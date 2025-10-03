@@ -56,3 +56,78 @@ Pillow>=10.0.0
 
 # Google Gemini AI dependencies
 google-genai>=0.1.0
+
+# ===== UNIVERSAL DATA CONNECTOR DEPENDENCIES =====
+
+# Data Processing and Analysis
+pandas>=2.0.0
+pyarrow>=14.0.0  # For Parquet format support
+openpyxl>=3.1.0  # Excel file handling
+xlsxwriter>=3.1.0  # Excel file writing
+chardet>=5.0.0  # Character encoding detection
+
+# Data Formats and Parsing
+xmltodict>=0.13.0  # XML parsing
+pyyaml>=6.0.0  # Already included above, but critical for YAML support
+jsonlines>=4.0.0  # JSONL format support
+configparser>=6.0.0  # INI file format
+
+# Database Connectors (for future real connections)
+pymongo>=4.5.0  # MongoDB/CosmosDB NoSQL
+psycopg2-binary>=2.9.0  # PostgreSQL
+pymssql>=2.2.0  # SQL Server
+cx-Oracle>=8.3.0  # Oracle database (optional, comment if not needed)
+
+# Data Quality and Validation
+jsonschema>=4.20.0  # JSON schema validation
+cerberus>=1.3.5  # Data validation
+python-magic>=0.4.27  # File type detection
+
+# Performance and Caching
+diskcache>=5.6.0  # Disk-based caching
+redis>=5.0.0  # Redis caching support
+
+# Statistical Analysis
+scipy>=1.11.0  # Statistical functions
+scikit-learn>=1.3.0  # Pattern detection and ML
+
+# Encoding and Compression
+python-snappy>=0.6.1  # Snappy compression
+zstandard>=0.22.0  # Zstandard compression
+brotli>=1.1.0  # Brotli compression
+
+# Legacy System Support
+ebcdic>=1.1.1  # EBCDIC encoding for mainframe data
+python-cobol>=0.1.0  # COBOL copybook parsing (if available)
+
+# Fixed-Width File Processing
+fixedwidth>=2.0.0  # Fixed-width file parser
+
+# Data Generation and Faker
+faker>=20.0.0  # Realistic fake data generation
+mimesis>=12.0.0  # Alternative data generator
+
+# Hashing and Security
+cryptography>=41.0.0  # Encryption/decryption support
+
+# Math and Analysis (for entropy calculations)
+sympy>=1.12  # Symbolic mathematics
+
+# Progress Bars and CLI (for large dataset operations)
+tqdm>=4.66.0  # Progress bars
+rich>=13.7.0  # Rich terminal output
+click>=8.1.0  # CLI creation
+
+# Memory Management
+pympler>=1.0.0  # Memory profiling
+objgraph>=3.6.0  # Object graph visualization
+
+# Testing and Quality (for simulated data validation)
+hypothesis>=6.90.0  # Property-based testing
+pytest>=7.4.0  # Testing framework
+pytest-asyncio>=0.21.0  # Async testing
+
+# Optional: Advanced Analytics (comment out if not needed)
+# dask>=2023.12.0  # Parallel computing
+# polars>=0.19.0  # Fast DataFrame library
+# vaex>=4.17.0  # Out-of-core DataFrames
